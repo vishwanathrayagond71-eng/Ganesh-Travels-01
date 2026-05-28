@@ -6,6 +6,7 @@
 require('dotenv').config(); // Load environment variables from .env
 
 const express = require('express');
+const ejs = require('ejs'); // Force Netlify bundler to package EJS
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const flash = require('connect-flash');
@@ -20,7 +21,7 @@ const PORT = process.env.PORT || 3000;
 // VIEW ENGINE SETUP - EJS Templates
 // ============================================================
 app.set('view engine', 'ejs');
-app.set('views', path.join(process.cwd(), 'views'));
+app.set('views', path.join(__dirname, 'views'));
 
 // ============================================================
 // STATIC FILES - CSS, JS, Images
@@ -107,8 +108,6 @@ async function startServer() {
     app.listen(PORT, () => {
       console.log(`🚀 Ganesh Travels is running at http://localhost:${PORT}`);
       console.log(`📊 Admin Panel: http://localhost:${PORT}/admin/login`);
-      console.log(`👤 Admin Email: ${process.env.ADMIN_EMAIL || 'aditya777@gmail.com'}`);
-      console.log(`🔑 Admin Password: ${process.env.ADMIN_PASSWORD || 'aditya@123'}`);
     });
   } catch (err) {
     console.error('Failed to start server:', err);

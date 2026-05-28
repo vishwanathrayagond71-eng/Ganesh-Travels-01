@@ -332,11 +332,18 @@ router.get('/admin/login', redirectIfAdminLoggedIn, (req, res) => {
 // Admin Login (POST)
 router.post('/admin/login', redirectIfAdminLoggedIn, (req, res) => {
   const { email, password } = req.body;
-  const adminEmail = process.env.ADMIN_EMAIL || 'aditya777@gmail.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'aditya@123';
+  const adminEmail = process.env.ADMIN_EMAIL || 'xyz7@2007@gmail.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || '1234';
 
-  if (email === adminEmail && password === adminPassword) {
-    req.session.admin = { email, name: 'Admin' };
+  const cleanEmail = email ? email.trim().toLowerCase() : '';
+  const cleanAdmin = adminEmail.trim().toLowerCase();
+  
+  const isEmailMatch = (cleanEmail === cleanAdmin) || 
+                       (cleanEmail === cleanAdmin.replace('@gmail.com', '')) ||
+                       (cleanEmail + '@gmail.com' === cleanAdmin);
+
+  if (isEmailMatch && password === adminPassword) {
+    req.session.admin = { email: adminEmail, name: 'Admin' };
     res.redirect('/admin/dashboard');
   } else {
     req.flash('error', 'Invalid admin credentials.');
