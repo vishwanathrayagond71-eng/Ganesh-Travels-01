@@ -480,6 +480,7 @@ router.get('/admin/download/:sheet', requireAdmin, async (req, res) => {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename=${sheet}.xlsx`);
     await excel.writeExcelToStream(sheet, res);
+    res.end();
   } catch (err) {
     console.error(`[Excel Download Error] Failed to generate ${sheet}.xlsx:`, err);
     req.flash('error', 'Could not generate Excel file.');
