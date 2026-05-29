@@ -469,20 +469,22 @@ router.post('/admin/delete/:sheet/:id', requireAdmin, async (req, res) => {
 });
 
 // Admin Download Excel File
-router.get('/admin/download/:sheet', requireAdmin, (req, res) => {
+router.get('/admin/download/:sheet', requireAdmin, async (req, res) => {
   const { sheet } = req.params;
   const validSheets = ['users', 'bookings', 'reviews', 'contacts', 'newsletter', 'settings', 'team'];
   if (!validSheets.includes(sheet)) {
     req.flash('error', 'Invalid file.');
     return res.redirect('/admin/dashboard');
   }
-  const filePath = excel.getFilePath(sheet);
-  res.download(filePath, `${sheet}.xlsx`, (err) => {
-    if (err) {
-      req.flash('error', 'Could not download file.');
-      res.redirect('/admin/dashboard');
-    }
-  });
+  try {
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=${sheet}.xlsx`);
+    await excel.writeExcelToStream(sheet, res);
+  } catch (err) {
+    console.error(`[Excel Download Error] Failed to generate ${sheet}.xlsx:`, err);
+    req.flash('error', 'Could not generate Excel file.');
+    res.redirect('/admin/dashboard');
+  }
 });
 
 module.exports = router;

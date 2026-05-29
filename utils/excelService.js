@@ -297,6 +297,30 @@ async function findOne(sheetName, field, value) {
   }
 }
 
+// Generate Excel workbook in-memory and write to stream
+async function writeExcelToStream(sheetName, stream) {
+  const headers = SHEET_HEADERS[sheetName];
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet(sheetName);
+  
+  sheet.addRow(headers);
+  // Style the header row
+  sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  sheet.getRow(1).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF1d3557' }
+  };
+  
+  const data = await readData(sheetName);
+  data.forEach(row => {
+    const rowData = headers.map(h => row[h] !== undefined ? String(row[h]) : '');
+    sheet.addRow(rowData);
+  });
+  
+  await workbook.xlsx.write(stream);
+}
+
 module.exports = {
   initAllSheets,
   readData,
@@ -304,5 +328,6 @@ module.exports = {
   deleteRow,
   updateRow,
   findOne,
-  getFilePath
+  getFilePath,
+  writeExcelToStream
 };
