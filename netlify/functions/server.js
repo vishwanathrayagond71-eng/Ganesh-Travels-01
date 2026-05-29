@@ -4,8 +4,13 @@ const { initAllSheets } = require('../../utils/excelService');
 
 let initialized = false;
 
-// Wrap the Express app in a serverless-http handler
-const handler = serverless(app);
+// Wrap the Express app in a serverless-http handler with binary support
+const handler = serverless(app, {
+  binary: [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/octet-stream'
+  ]
+});
 
 module.exports.handler = async (event, context) => {
   // Make sure database is initialized on the first function invocation
