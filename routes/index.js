@@ -332,7 +332,7 @@ router.get('/admin/login', redirectIfAdminLoggedIn, (req, res) => {
 // Admin Login (POST)
 router.post('/admin/login', redirectIfAdminLoggedIn, (req, res) => {
   const { email, password } = req.body;
-  const adminEmail = process.env.ADMIN_EMAIL || 'xyz7@2007@gmail.com';
+  const adminEmail = process.env.ADMIN_EMAIL || 'xyz7@gmail.com';
   const adminPassword = process.env.ADMIN_PASSWORD || '1234';
 
   const cleanEmail = email ? email.trim().toLowerCase() : '';
