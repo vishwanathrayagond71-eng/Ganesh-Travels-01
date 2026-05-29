@@ -377,7 +377,7 @@ router.get('/admin/dashboard', requireAdmin, async (req, res) => {
     const phoneSetting = settings.find(s => s.key === 'contact_phone');
     const emailSetting = settings.find(s => s.key === 'contact_email');
     const currentPhone = phoneSetting ? phoneSetting.value : '+91 98765 43210';
-    const currentEmail = emailSetting ? emailSetting.value : 'aditya777@gmail.com';
+    const currentEmail = emailSetting ? emailSetting.value : 'xyz7@gmail.com';
 
     res.render('admin-dashboard', {
       title: 'Admin Dashboard - Ganesh Travels',

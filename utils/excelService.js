@@ -105,7 +105,7 @@ async function initAllSheets() {
       }
       const email = await findOne('settings', 'key', 'contact_email');
       if (!email) {
-        await addRow('settings', { key: 'contact_email', value: 'aditya777@gmail.com', createdAt: new Date().toLocaleString() });
+        await addRow('settings', { key: 'contact_email', value: 'xyz7@gmail.com', createdAt: new Date().toLocaleString() });
       }
 
       // Start background sync of all collections to local Excel files for download support
@@ -128,7 +128,7 @@ async function initAllSheets() {
     }
     const email = await findOne('settings', 'key', 'contact_email');
     if (!email) {
-      await addRow('settings', { key: 'contact_email', value: 'aditya777@gmail.com', createdAt: new Date().toLocaleString() });
+      await addRow('settings', { key: 'contact_email', value: 'xyz7@gmail.com', createdAt: new Date().toLocaleString() });
     }
     console.log('✅ Excel sheets initialized successfully (Local Mode)');
   }

@@ -69,10 +69,10 @@ app.use(async (req, res, next) => {
     const phoneSetting = await excel.findOne('settings', 'key', 'contact_phone');
     const emailSetting = await excel.findOne('settings', 'key', 'contact_email');
     res.locals.contactPhone = phoneSetting ? phoneSetting.value : '+91 98765 43210';
-    res.locals.contactEmail = emailSetting ? emailSetting.value : 'aditya777@gmail.com';
+    res.locals.contactEmail = emailSetting ? emailSetting.value : 'xyz7@gmail.com';
   } catch (err) {
     res.locals.contactPhone = '+91 98765 43210';
-    res.locals.contactEmail = 'aditya777@gmail.com';
+    res.locals.contactEmail = 'xyz7@gmail.com';
   }
   next();
 });

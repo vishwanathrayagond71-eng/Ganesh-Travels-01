@@ -11,10 +11,10 @@ services:
         generateValue: true
       - key: ADMIN_EMAIL
         sync: false
-        placeholder: "e.g., aditya777@gmail.com"
+        placeholder: "e.g., xyz7@gmail.com"
       - key: ADMIN_PASSWORD
         sync: false
-        placeholder: "e.g., aditya@123"
+        placeholder: "e.g., 1234"
       - key: MONGODB_URI
         sync: false
         placeholder: "Your MongoDB Atlas Connection String"

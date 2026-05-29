@@ -11,11 +11,11 @@ const chatResponses = {
   
   'how to book a tour': '📅 Booking is easy! Just:\n1. Go to our <a href="/booking" style="color:#e9c46a">Booking page</a>\n2. Select your destination & dates\n3. Enter your details\n4. Click "Confirm Booking"\nWe\'ll confirm via email within 24 hours! ✅',
   
-  'cancellation policy': `❌ Our cancellation policy:\n• Free cancellation within 24 hours\n• 7+ days before: 75% refund\n• Within 7 days: No refund\nContact us for special cases at ${window.contactEmail || 'aditya777@gmail.com'}`,
+  'cancellation policy': `❌ Our cancellation policy:\n• Free cancellation within 24 hours\n• 7+ days before: 75% refund\n• Within 7 days: No refund\nContact us for special cases at ${window.contactEmail || 'xyz7@gmail.com'}`,
   
   'price': '💰 Our prices start from:\n• Budget trips: ₹7,999/person\n• Family packages: ₹24,999\n• Honeymoon: ₹34,999\n• International: ₹54,999+\nCheck our <a href="/packages" style="color:#e9c46a">Packages</a> for exact pricing!',
   
-  'contact': `📞 Reach us at:\n• Phone: ${window.contactPhone || '+91 98765 43210'}\n• Email: ${window.contactEmail || 'aditya777@gmail.com'}\n• Office: Ganesh Travels, Vidyagiri, Bagalkote, Karnataka\n• Hours: Mon-Sat 9AM-7PM\nOr visit our <a href="/contact" style="color:#e9c46a">Contact page</a>!`,
+  'contact': `📞 Reach us at:\n• Phone: ${window.contactPhone || '+91 98765 43210'}\n• Email: ${window.contactEmail || 'xyz7@gmail.com'}\n• Office: Ganesh Travels, Vidyagiri, Bagalkote, Karnataka\n• Hours: Mon-Sat 9AM-7PM\nOr visit our <a href="/contact" style="color:#e9c46a">Contact page</a>!`,
   
   'goa': '🌊 Goa is fantastic! Our Goa package includes:\n• Boutique hotel stay\n• Beach activities\n• Scooter rental\n• City tour\n• Starting from ₹18,999\n<a href="/booking?destination=Goa Beaches" style="color:#e9c46a">Book Goa Now →</a>',
   
@@ -35,7 +35,7 @@ const chatResponses = {
 };
 
 // Default response for unrecognized questions
-const defaultResponse = `🤔 I'm not sure about that specific question. For personalized assistance, please:\n• <a href='/contact' style='color:#e9c46a'>Contact our team</a>\n• Call us: ${window.contactPhone || '+91 98765 43210'}\n• Email: ${window.contactEmail || 'aditya777@gmail.com'}\nOur experts are available Mon-Sat 9AM-7PM! 😊`;
+const defaultResponse = `🤔 I'm not sure about that specific question. For personalized assistance, please:\n• <a href='/contact' style='color:#e9c46a'>Contact our team</a>\n• Call us: ${window.contactPhone || '+91 98765 43210'}\n• Email: ${window.contactEmail || 'xyz7@gmail.com'}\nOur experts are available Mon-Sat 9AM-7PM! 😊`;
 
 // Toggle chatbot open/closed
 function toggleChatbot() {
