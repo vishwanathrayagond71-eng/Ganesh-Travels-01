@@ -1,0 +1,845 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<!-- Include Leaflet.js CDN -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<style>
+  /* Hero Parallax Header */
+  .detail-hero {
+    position: relative;
+    height: 480px;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    display: flex;
+    align-items: flex-end;
+    color: white;
+  }
+
+  .detail-hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);
+    z-index: 1;
+  }
+
+  .detail-hero-content {
+    position: relative;
+    z-index: 2;
+    padding-bottom: 50px;
+    width: 100%;
+  }
+
+  .dest-category-badge {
+    background: var(--accent-color, #e63946);
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    padding: 6px 16px;
+    border-radius: 30px;
+    letter-spacing: 1px;
+    display: inline-block;
+  }
+
+  .dest-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    margin: 10px 0;
+  }
+
+  .dest-meta-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    align-items: center;
+  }
+
+  .dest-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rating-stars {
+    color: #ffc107;
+  }
+
+  /* Main section grid */
+  .detail-container {
+    padding: 60px 0;
+    background: var(--bg-light, #f8f9fa);
+  }
+
+  .content-card {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-color, #e5e5e5);
+    border-radius: var(--radius-md, 16px);
+    padding: 30px;
+    box-shadow: var(--shadow-sm, 0 2px 10px rgba(0,0,0,0.05));
+    margin-bottom: 30px;
+  }
+
+  .content-card-title {
+    font-weight: 700;
+    color: var(--primary-color, #1d3557);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid var(--border-color, #e5e5e5);
+    padding-bottom: 12px;
+  }
+
+  .description-text {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--text-dark, #333333);
+  }
+
+  /* Interactive Map styling */
+  .detail-map-wrapper {
+    height: 450px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-color, #e5e5e5);
+    position: relative;
+    margin-top: 15px;
+    box-shadow: var(--shadow-md, 0 4px 15px rgba(0,0,0,0.08));
+  }
+
+  #detailMap {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* POIs Tabbed Section */
+  .poi-tabs .nav-link {
+    font-weight: 700;
+    color: var(--text-dark);
+    border: none;
+    padding: 12px 20px;
+    border-radius: 30px;
+    margin-right: 8px;
+    transition: var(--transition);
+    background: transparent;
+  }
+
+  .poi-tabs .nav-link.active {
+    background: var(--primary-color, #1d3557) !important;
+    color: white !important;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .poi-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-top: 20px;
+  }
+
+  @media(min-width: 992px) {
+    .poi-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .poi-item-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm, 12px);
+    overflow: hidden;
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    cursor: pointer;
+  }
+
+  .poi-item-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light, #457b9d);
+  }
+
+  .poi-item-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .poi-item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .poi-item-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .poi-item-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+  }
+
+  .poi-badge {
+    text-transform: capitalize;
+    font-weight: 700;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+
+  .badge-temple { background: rgba(233, 196, 106, 0.2); color: #b58900; }
+  .badge-tourist { background: rgba(29, 53, 87, 0.1); color: var(--primary-color); }
+  .badge-restaurant { background: rgba(230, 57, 70, 0.1); color: var(--danger-color); }
+  .badge-hotel, .badge-lodge { background: rgba(42, 157, 143, 0.1); color: var(--success-color); }
+  .badge-falls { background: rgba(0, 180, 216, 0.1); color: #0077b6; }
+
+  .poi-dist-badge {
+    font-weight: 700;
+    color: var(--primary-light);
+  }
+
+  .poi-item-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0 0 10px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Booking Sidebar */
+  .booking-sidebar-card {
+    position: sticky;
+    top: 90px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md, 16px);
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .booking-sidebar-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+  }
+
+  .booking-sidebar-price {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--primary-color);
+  }
+
+  .booking-sidebar-price span {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* Custom Popup Map style */
+  .leaflet-popup-content-wrapper {
+    border-radius: var(--radius-md);
+    padding: 0;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+  }
+
+  .leaflet-popup-content {
+    margin: 0;
+    width: 250px !important;
+  }
+
+  .map-popup-card {
+    font-family: var(--font-main);
+  }
+
+  .map-popup-img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+  }
+
+  .map-popup-body {
+    padding: 12px;
+  }
+
+  .map-popup-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin: 0 0 6px 0;
+    color: var(--text-dark);
+  }
+
+  .map-popup-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: 0 0 10px 0;
+    line-height: 1.4;
+  }
+
+  .map-popup-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+  }
+
+  /* Custom Destination Star Pin */
+  .dest-star-pin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .empty-poi-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-poi-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: var(--border-color);
+  }
+</style>
+
+<!-- Page Hero Header -->
+<div class="detail-hero" style="background-image: url('<%= destination.image %>')">
+  <div class="detail-hero-overlay"></div>
+  <div class="container">
+    <div class="detail-hero-content">
+      <span class="dest-category-badge mb-2"><i class="fas fa-tag me-1"></i><%= destination.category %></span>
+      <h1 class="dest-title"><%= destination.name %></h1>
+      <div class="dest-meta-info">
+        <div class="dest-meta-item">
+          <i class="fas fa-location-dot text-danger"></i>
+          <span><%= destination.country %></span>
+        </div>
+        <div class="dest-meta-item">
+          <div class="rating-stars">
+            <% for(let i=0; i<5; i++) { %>
+              <i class="fas fa-star <%= i < Math.round(destination.rating) ? '' : 'far text-muted' %>"></i>
+            <% } %>
+          </div>
+          <span><%= destination.rating %> (<%= destination.reviews %> reviews)</span>
+        </div>
+        <div class="dest-meta-item">
+          <i class="fas fa-tags text-warning"></i>
+          <span>Starting from ₹<%= destination.price.toLocaleString() %></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content Grid -->
+<section class="detail-container">
+  <div class="container">
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="/destinations" class="text-decoration-none">Destinations</a></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= destination.name %></li>
+      </ol>
+    </nav>
+
+    <!-- Flash message indicators -->
+    <% if (messages.error) { %>
+      <div class="alert alert-danger mb-4"><i class="fas fa-exclamation-circle me-2"></i><%= messages.error[0] %></div>
+    <% } %>
+    <% if (messages.success) { %>
+      <div class="alert alert-success mb-4"><i class="fas fa-check-circle me-2"></i><%= messages.success[0] %></div>
+    <% } %>
+
+    <div class="row">
+      <!-- Main Content (8 cols) -->
+      <div class="col-lg-8">
+        <!-- About Section -->
+        <div class="content-card">
+          <h4 class="content-card-title"><i class="fas fa-circle-info text-primary"></i>About this Destination</h4>
+          <p class="description-text"><%= destination.description %></p>
+          <p class="description-text text-muted mt-2">
+            Experience the rich heritage, majestic history, local flavor, and exceptional atmosphere that defines this breathtaking spot. 
+            Below, explore the local area guide including temples, waterfalls, hotels, and restaurants nearby.
+          </p>
+        </div>
+
+        <!-- Interactive Map Section -->
+        <div class="content-card">
+          <h4 class="content-card-title"><i class="fas fa-map-marked-alt text-success"></i>Interactive Local Guide Map</h4>
+          <p class="text-muted small">Explore tourist sights, temples, eateries, and lodging within a 100 km radius of <%= destination.name %> center. Toggle satellite view in the top right corner.</p>
+          <div class="detail-map-wrapper">
+            <div id="detailMap"></div>
+          </div>
+        </div>
+
+        <!-- Local Guide Sights Section -->
+        <div class="content-card">
+          <h4 class="content-card-title"><i class="fas fa-compass text-danger"></i>Nearby Attractions & Places of Interest</h4>
+          
+          <div class="poi-tabs mt-3">
+            <ul class="nav nav-pills" id="poiTabList" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="places-tab" data-bs-toggle="tab" data-bs-target="#places-pane" type="button" role="tab" aria-controls="places-pane" aria-selected="true">
+                  🏰 Sights (<%= nearbyPois.tourist.length %>)
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="temples-tab" data-bs-toggle="tab" data-bs-target="#temples-pane" type="button" role="tab" aria-controls="temples-pane" aria-selected="false">
+                  🛕 Temples (<%= nearbyPois.temple.length %>)
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="dining-tab" data-bs-toggle="tab" data-bs-target="#dining-pane" type="button" role="tab" aria-controls="dining-pane" aria-selected="false">
+                  🍔 Dining (<%= nearbyPois.restaurant.length %>)
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="lodges-tab" data-bs-toggle="tab" data-bs-target="#lodges-pane" type="button" role="tab" aria-controls="lodges-pane" aria-selected="false">
+                  🏨 Lodges (<%= nearbyPois.lodge.length %>)
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="falls-tab" data-bs-toggle="tab" data-bs-target="#falls-pane" type="button" role="tab" aria-controls="falls-pane" aria-selected="false">
+                  🌊 Waterfalls (<%= nearbyPois.falls.length %>)
+                </button>
+              </li>
+            </ul>
+
+            <div class="tab-content" id="poiTabContent">
+              <!-- Sights Tab Pane -->
+              <div class="tab-pane fade show active" id="places-pane" role="tabpanel" aria-labelledby="places-tab" tabindex="0">
+                <div class="poi-grid">
+                  <% if(nearbyPois.tourist.length > 0) { %>
+                    <% nearbyPois.tourist.forEach(poi => { %>
+                      <div class="poi-item-card" onclick="focusPoiOnMap('<%= poi.id %>', <%= poi.lat %>, <%= poi.lng %>)">
+                        <img src="<%= poi.image || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=300' %>" class="poi-item-img" alt="<%= poi.name %>">
+                        <div class="poi-item-info">
+                          <div>
+                            <h6 class="poi-item-title" title="<%= poi.name %>"><%= poi.name %></h6>
+                            <div class="poi-item-meta">
+                              <span class="poi-badge badge-tourist"><%= poi.category %></span>
+                              <span class="poi-dist-badge"><i class="fas fa-location-dot me-1"></i><%= poi.distance.toFixed(1) %> km</span>
+                            </div>
+                            <p class="poi-item-desc"><%= poi.description %></p>
+                          </div>
+                          <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted"><i class="fas fa-star text-warning me-1"></i><%= poi.rating %></span>
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=<%= poi.lat %>,<%= poi.lng %>" target="_blank" class="btn btn-outline-primary btn-sm px-2 py-0" style="font-size:0.75rem" onclick="event.stopPropagation();">
+                              <i class="fas fa-directions me-1"></i>Directions
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    <% }) %>
+                  <% } else { %>
+                    <div class="empty-poi-state">
+                      <i class="fas fa-landmark"></i>
+                      <p>No nearby tourist places found within 100 km.</p>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Temples Tab Pane -->
+              <div class="tab-pane fade" id="temples-pane" role="tabpanel" aria-labelledby="temples-tab" tabindex="0">
+                <div class="poi-grid">
+                  <% if(nearbyPois.temple.length > 0) { %>
+                    <% nearbyPois.temple.forEach(poi => { %>
+                      <div class="poi-item-card" onclick="focusPoiOnMap('<%= poi.id %>', <%= poi.lat %>, <%= poi.lng %>)">
+                        <img src="<%= poi.image || 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300' %>" class="poi-item-img" alt="<%= poi.name %>">
+                        <div class="poi-item-info">
+                          <div>
+                            <h6 class="poi-item-title" title="<%= poi.name %>"><%= poi.name %></h6>
+                            <div class="poi-item-meta">
+                              <span class="poi-badge badge-temple"><%= poi.category %></span>
+                              <span class="poi-dist-badge"><i class="fas fa-location-dot me-1"></i><%= poi.distance.toFixed(1) %> km</span>
+                            </div>
+                            <p class="poi-item-desc"><%= poi.description %></p>
+                          </div>
+                          <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted"><i class="fas fa-star text-warning me-1"></i><%= poi.rating %></span>
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=<%= poi.lat %>,<%= poi.lng %>" target="_blank" class="btn btn-outline-primary btn-sm px-2 py-0" style="font-size:0.75rem" onclick="event.stopPropagation();">
+                              <i class="fas fa-directions me-1"></i>Directions
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    <% }) %>
+                  <% } else { %>
+                    <div class="empty-poi-state">
+                      <i class="fas fa-gopuram"></i>
+                      <p>No nearby temples found within 100 km.</p>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Dining Tab Pane -->
+              <div class="tab-pane fade" id="dining-pane" role="tabpanel" aria-labelledby="dining-tab" tabindex="0">
+                <div class="poi-grid">
+                  <% if(nearbyPois.restaurant.length > 0) { %>
+                    <% nearbyPois.restaurant.forEach(poi => { %>
+                      <div class="poi-item-card" onclick="focusPoiOnMap('<%= poi.id %>', <%= poi.lat %>, <%= poi.lng %>)">
+                        <img src="<%= poi.image || 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=300' %>" class="poi-item-img" alt="<%= poi.name %>">
+                        <div class="poi-item-info">
+                          <div>
+                            <h6 class="poi-item-title" title="<%= poi.name %>"><%= poi.name %></h6>
+                            <div class="poi-item-meta">
+                              <span class="poi-badge badge-restaurant"><%= poi.category %></span>
+                              <span class="poi-dist-badge"><i class="fas fa-location-dot me-1"></i><%= poi.distance.toFixed(1) %> km</span>
+                            </div>
+                            <p class="poi-item-desc"><%= poi.description %></p>
+                          </div>
+                          <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted"><i class="fas fa-star text-warning me-1"></i><%= poi.rating %></span>
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=<%= poi.lat %>,<%= poi.lng %>" target="_blank" class="btn btn-outline-primary btn-sm px-2 py-0" style="font-size:0.75rem" onclick="event.stopPropagation();">
+                              <i class="fas fa-directions me-1"></i>Directions
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    <% }) %>
+                  <% } else { %>
+                    <div class="empty-poi-state">
+                      <i class="fas fa-utensils"></i>
+                      <p>No nearby restaurants found within 100 km.</p>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Lodges Tab Pane -->
+              <div class="tab-pane fade" id="lodges-pane" role="tabpanel" aria-labelledby="lodges-tab" tabindex="0">
+                <div class="poi-grid">
+                  <% if(nearbyPois.lodge.length > 0) { %>
+                    <% nearbyPois.lodge.forEach(poi => { %>
+                      <div class="poi-item-card" onclick="focusPoiOnMap('<%= poi.id %>', <%= poi.lat %>, <%= poi.lng %>)">
+                        <img src="<%= poi.image || 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300' %>" class="poi-item-img" alt="<%= poi.name %>">
+                        <div class="poi-item-info">
+                          <div>
+                            <h6 class="poi-item-title" title="<%= poi.name %>"><%= poi.name %></h6>
+                            <div class="poi-item-meta">
+                              <span class="poi-badge badge-lodge"><%= poi.category %></span>
+                              <span class="poi-dist-badge"><i class="fas fa-location-dot me-1"></i><%= poi.distance.toFixed(1) %> km</span>
+                            </div>
+                            <p class="poi-item-desc"><%= poi.description %></p>
+                          </div>
+                          <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted"><i class="fas fa-star text-warning me-1"></i><%= poi.rating %></span>
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=<%= poi.lat %>,<%= poi.lng %>" target="_blank" class="btn btn-outline-primary btn-sm px-2 py-0" style="font-size:0.75rem" onclick="event.stopPropagation();">
+                              <i class="fas fa-directions me-1"></i>Directions
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    <% }) %>
+                  <% } else { %>
+                    <div class="empty-poi-state">
+                      <i class="fas fa-hotel"></i>
+                      <p>No nearby hotels or lodges found within 100 km.</p>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Waterfalls Tab Pane -->
+              <div class="tab-pane fade" id="falls-pane" role="tabpanel" aria-labelledby="falls-tab" tabindex="0">
+                <div class="poi-grid">
+                  <% if(nearbyPois.falls.length > 0) { %>
+                    <% nearbyPois.falls.forEach(poi => { %>
+                      <div class="poi-item-card" onclick="focusPoiOnMap('<%= poi.id %>', <%= poi.lat %>, <%= poi.lng %>)">
+                        <img src="<%= poi.image || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=300' %>" class="poi-item-img" alt="<%= poi.name %>">
+                        <div class="poi-item-info">
+                          <div>
+                            <h6 class="poi-item-title" title="<%= poi.name %>"><%= poi.name %></h6>
+                            <div class="poi-item-meta">
+                              <span class="poi-badge badge-falls"><%= poi.category %></span>
+                              <span class="poi-dist-badge"><i class="fas fa-location-dot me-1"></i><%= poi.distance.toFixed(1) %> km</span>
+                            </div>
+                            <p class="poi-item-desc"><%= poi.description %></p>
+                          </div>
+                          <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted"><i class="fas fa-star text-warning me-1"></i><%= poi.rating %></span>
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=<%= poi.lat %>,<%= poi.lng %>" target="_blank" class="btn btn-outline-primary btn-sm px-2 py-0" style="font-size:0.75rem" onclick="event.stopPropagation();">
+                              <i class="fas fa-directions me-1"></i>Directions
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    <% }) %>
+                  <% } else { %>
+                    <div class="empty-poi-state">
+                      <i class="fas fa-water"></i>
+                      <p>No nearby waterfalls found within 100 km.</p>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking Sidebar Column (4 cols) -->
+      <div class="col-lg-4">
+        <div class="booking-sidebar-card">
+          <div class="booking-sidebar-header">
+            <span class="text-muted small uppercase font-bold" style="letter-spacing: 0.5px;">Ganesh Travels Special</span>
+            <div class="booking-sidebar-price mt-1">
+              ₹<%= destination.price.toLocaleString() %>
+              <span>/ starting cost</span>
+            </div>
+          </div>
+
+          <form action="/booking" method="POST">
+            <!-- Prefilled & Hidden Destination Fields -->
+            <div class="mb-3">
+              <label class="form-label" style="font-weight:600; font-size:0.88rem;">Selected Destination</label>
+              <input type="text" class="form-control" value="<%= destination.name %>" disabled style="background:#eef1f6; font-weight:700;">
+              <input type="hidden" name="destination" value="<%= destination.name %>">
+            </div>
+
+            <!-- Booking Date -->
+            <div class="mb-3">
+              <label for="bookingDate" class="form-label" style="font-weight:600; font-size:0.88rem;">Journey Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="bookingDate" name="date" required style="border-radius: 8px;">
+            </div>
+
+            <!-- Number of Guests -->
+            <div class="mb-3">
+              <label for="bookingGuests" class="form-label" style="font-weight:600; font-size:0.88rem;">No. of Travelers <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="bookingGuests" name="guests" min="1" max="100" value="1" required style="border-radius: 8px;">
+            </div>
+
+            <hr class="my-3" style="border-color: var(--border-color);">
+
+            <h6 class="mb-3 font-bold" style="color:var(--primary-color);">Contact Details</h6>
+
+            <!-- Contact Name -->
+            <div class="mb-3">
+              <label for="contactName" class="form-label" style="font-weight:600; font-size:0.88rem;">Full Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="contactName" name="name" value="<%= user ? user.name : '' %>" placeholder="Enter your full name" required style="border-radius: 8px;">
+            </div>
+
+            <!-- Contact Email -->
+            <div class="mb-3">
+              <label for="contactEmail" class="form-label" style="font-weight:600; font-size:0.88rem;">Email Address <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" id="contactEmail" name="email" value="<%= user ? user.email : '' %>" placeholder="name@gmail.com" required style="border-radius: 8px;">
+            </div>
+
+            <!-- Contact Phone -->
+            <div class="mb-3">
+              <label for="contactPhone" class="form-label" style="font-weight:600; font-size:0.88rem;">Phone Number <span class="text-danger">*</span></label>
+              <input type="tel" class="form-control" id="contactPhone" name="phone" value="<%= user ? user.phone : '' %>" placeholder="Mobile number" required style="border-radius: 8px;">
+            </div>
+
+            <!-- Special Message -->
+            <div class="mb-4">
+              <label for="bookingMessage" class="form-label" style="font-weight:600; font-size:0.88rem;">Special Requests / Messages</label>
+              <textarea class="form-control" id="bookingMessage" name="message" rows="3" placeholder="Any specific requirements..." style="border-radius: 8px; resize: none;"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2.5 font-bold" style="border-radius: 12px; font-size: 1.05rem;">
+              <i class="fas fa-calendar-check me-2"></i>Confirm Tour Booking
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>
+
+<!-- Leaflet JavaScript library -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+  let map;
+  let markers = {};
+  const destLat = <%= destination.lat %>;
+  const destLng = <%= destination.lng %>;
+  const destName = "<%= destination.name %>";
+
+  // Parse all nearby POIs passed from the server
+  const nearbyPoisData = <%- JSON.stringify(nearbyPois) %>;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initialize Map layers (Street View and Google Satellite Hybrid)
+    const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    });
+
+    const satelliteMap = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      attribution: '© Google Maps'
+    });
+
+    // Create Leaflet map centered at the destination
+    map = L.map('detailMap', {
+      zoomControl: false,
+      layers: [streetMap]
+    }).setView([destLat, destLng], 12);
+
+    L.control.zoom({
+      position: 'bottomright'
+    }).addTo(map);
+
+    // Layer selection control
+    const baseMaps = {
+      "🗺️ Street Map": streetMap,
+      "🛰️ Satellite": satelliteMap
+    };
+    L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+    // 2. Add Center Star Marker representing the Destination
+    const starIcon = L.divIcon({
+      html: `<div class="dest-star-pin" style="background: #ffd700; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid #1d3557; box-shadow: 0 4px 10px rgba(0,0,0,0.4)">
+              <i class="fas fa-star" style="color: #1d3557; font-size: 20px;"></i>
+             </div>`,
+      className: 'destination-center-pin',
+      iconSize: [42, 42],
+      iconAnchor: [21, 21]
+    });
+
+    L.marker([destLat, destLng], { icon: starIcon })
+      .addTo(map)
+      .bindPopup(`<h5>⭐ ${destName}</h5><p class="mb-0 text-muted" style="font-size:11px">Destination Center Point</p>`, { closeButton: false })
+      .openPopup();
+
+    // 3. Render markers for all nearby POIs
+    plotNearbyPoiMarkers();
+  });
+
+  // Category Icon & Color Mapping for leaflet markers
+  function getPoiStyle(category) {
+    switch (category) {
+      case 'temple':
+        return { color: '#e9c46a', iconClass: 'fa-dharma-wheel' }; // Gold
+      case 'tourist':
+        return { color: '#1d3557', iconClass: 'fa-monument' }; // Dark Blue
+      case 'restaurant':
+        return { color: '#e63946', iconClass: 'fa-utensils' }; // Red
+      case 'hotel':
+      case 'lodge':
+        return { color: '#2a9d8f', iconClass: 'fa-hotel' }; // Green
+      case 'falls':
+        return { color: '#00b4d8', iconClass: 'fa-water' }; // Light Blue
+      default:
+        return { color: '#9b5de5', iconClass: 'fa-map-pin' }; // Violet
+    }
+  }
+
+  function plotNearbyPoiMarkers() {
+    // Flatten nearbyPoisData categories into a single list
+    const allPois = [];
+    for (const category in nearbyPoisData) {
+      allPois.push(...nearbyPoisData[category]);
+    }
+
+    allPois.forEach(poi => {
+      const lat = parseFloat(poi.lat);
+      const lng = parseFloat(poi.lng);
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      const style = getPoiStyle(poi.category);
+
+      // Custom marker icon
+      const customHtmlIcon = L.divIcon({
+        html: `<div style="background-color: ${style.color}; width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3)">
+                <i class="fas ${style.iconClass}" style="color: white; font-size: 13px; transform: rotate(45deg)"></i>
+               </div>`,
+        className: 'custom-map-pin',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32]
+      });
+
+      // Assemble popup card content
+      let stars = '';
+      const r = Math.round(parseFloat(poi.rating) || 5);
+      for (let i = 0; i < 5; i++) {
+        stars += `<i class="fas fa-star ${i < r ? 'text-warning' : 'text-muted'}" style="font-size: 10px"></i>`;
+      }
+
+      const popupHtml = `
+        <div class="map-popup-card">
+          <img src="${poi.image || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=300'}" class="map-popup-img" alt="${poi.name}">
+          <div class="map-popup-body">
+            <h6 class="map-popup-title">${poi.name}</h6>
+            <div class="map-popup-meta">
+              <span class="poi-badge badge-${poi.category}">${poi.category}</span>
+              <div class="d-flex align-items-center gap-1">${stars}</div>
+            </div>
+            <p class="map-popup-desc" style="font-size: 0.72rem; line-height: 1.3;">${poi.description}</p>
+            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+              <span class="font-bold text-primary" style="font-size: 11px;">📍 ${poi.distance.toFixed(1)} km away</span>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" class="btn btn-primary btn-sm text-white px-2 py-0.5" style="font-size:10px;">
+                <i class="fas fa-directions me-1"></i>Get Route
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Plot marker
+      const marker = L.marker([lat, lng], { icon: customHtmlIcon })
+        .bindPopup(popupHtml, { closeButton: false });
+
+      marker.addTo(map);
+      markers[poi.id] = marker;
+    });
+  }
+
+  // Click handler to zoom and focus on a specific POI marker from the tabbed list click
+  function focusPoiOnMap(id, lat, lng) {
+    if (markers[id]) {
+      // Zoom and center the map on the POI
+      map.setView([lat, lng], 15);
+      markers[id].openPopup();
+      
+      // Smooth scroll back up to the map
+      document.querySelector('.detail-map-wrapper').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>

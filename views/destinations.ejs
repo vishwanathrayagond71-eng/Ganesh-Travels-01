@@ -53,12 +53,17 @@
               <i class="far fa-heart"></i>
             </button>
             <div class="destination-overlay">
-              <a href="/booking?destination=<%= encodeURIComponent(dest.name) %>" class="btn btn-light btn-sm">Book Now</a>
+              <div class="d-flex gap-2">
+                <a href="/destinations/<%= dest.id %>" class="btn btn-light btn-sm"><i class="fas fa-circle-info me-1"></i>Details</a>
+                <a href="/booking?destination=<%= encodeURIComponent(dest.name) %>" class="btn btn-primary btn-sm">Book Now</a>
+              </div>
             </div>
           </div>
           <div class="destination-info">
             <div class="d-flex justify-content-between align-items-start mb-1">
-              <h6 class="destination-name"><%= dest.name %></h6>
+              <h6 class="destination-name mb-0">
+                <a href="/destinations/<%= dest.id %>" class="text-decoration-none text-dark card-title-link" style="transition: color 0.3s ease;"><%= dest.name %></a>
+              </h6>
               <span class="price-badge">₹<%= dest.price.toLocaleString() %></span>
             </div>
             <div class="rating-row mb-2">
@@ -68,14 +73,38 @@
               <span class="rating-count">(<%= dest.reviews %> reviews)</span>
             </div>
             <p class="destination-desc"><%= dest.description %></p>
-            <a href="/booking?destination=<%= encodeURIComponent(dest.name) %>" class="btn btn-primary btn-sm w-100 mt-2">
-              <i class="fas fa-calendar-check me-1"></i>Book Now
-            </a>
+            <div class="d-flex gap-2 mt-3">
+              <a href="/destinations/<%= dest.id %>" class="btn btn-outline-primary btn-sm flex-grow-1">
+                <i class="fas fa-circle-info me-1"></i>View Details
+              </a>
+              <a href="/booking?destination=<%= encodeURIComponent(dest.name) %>" class="btn btn-primary btn-sm flex-grow-1">
+                <i class="fas fa-calendar-check me-1"></i>Book Now
+              </a>
+            </div>
           </div>
         </div>
       </div>
       <% }) %>
     </div>
+    
+    <style>
+      .card-title-link:hover {
+        color: var(--primary-color) !important;
+      }
+      .destination-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .destination-info {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+      .destination-desc {
+        flex-grow: 1;
+      }
+    </style>
 
     <!-- Recently Viewed -->
     <div id="recentlyViewed" class="mt-5" style="display:none">
