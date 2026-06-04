@@ -328,9 +328,12 @@
       <div class="gps-status-box">
         <div class="gps-indicator">
           <div class="status-dot" id="gpsDot"></div>
-          <span id="gpsText">GPS Inactive</span>
+          <div>
+            <span id="gpsText" style="font-weight: 700;">GPS Inactive</span><br>
+            <span id="gpsAccuracy" class="text-muted" style="font-size: 0.7rem; display: none;">Accuracy: --</span>
+          </div>
         </div>
-        <button class="btn btn-primary btn-sm px-3" onclick="locateUser()" title="Locate current GPS position">
+        <button class="btn btn-primary btn-sm px-3" id="locateBtn" onclick="toggleLocationTracking()" title="Locate and track current GPS position">
           <i class="fas fa-location-crosshairs me-1"></i>Locate Me
         </button>
       </div>
@@ -395,6 +398,7 @@
   let activePoiId = null;
   let map, userMarker, userCircle;
   let markers = {};
+  let watchId = null;
 
   // Setup Leaflet Map
   document.addEventListener('DOMContentLoaded', () => {
@@ -447,6 +451,16 @@
 
     // Map Click handler to set starting point of interest
     map.on('click', (e) => {
+      // Clear active watchPosition if running
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+        document.getElementById('locateBtn').innerHTML = '<i class="fas fa-location-crosshairs me-1"></i>Locate Me';
+        document.getElementById('locateBtn').classList.remove('btn-danger');
+        document.getElementById('locateBtn').classList.add('btn-primary');
+        document.getElementById('gpsAccuracy').style.display = 'none';
+      }
+
       const lat = e.latlng.lat;
       const lng = e.latlng.lng;
       userCoords = { lat, lng };
@@ -670,51 +684,107 @@
     userMarker.bindPopup(`<b>${label}</b><br><span style="font-size:10px">${lat.toFixed(4)}, ${lng.toFixed(4)}</span>`).openPopup();
   }
 
-  // Geolocation trigger
-  function locateUser() {
+  // Geolocation tracker with continuous watching for maximum accuracy
+  function toggleLocationTracking() {
     const gpsDot = document.getElementById('gpsDot');
     const gpsText = document.getElementById('gpsText');
+    const gpsAccuracy = document.getElementById('gpsAccuracy');
+    const locateBtn = document.getElementById('locateBtn');
 
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser.');
       return;
     }
 
+    if (watchId !== null) {
+      // Stop tracking
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+      gpsDot.classList.remove('active');
+      gpsDot.style.backgroundColor = '#ccc';
+      gpsText.textContent = 'GPS Inactive';
+      gpsAccuracy.style.display = 'none';
+      locateBtn.innerHTML = '<i class="fas fa-location-crosshairs me-1"></i>Locate Me';
+      locateBtn.classList.remove('btn-danger');
+      locateBtn.classList.add('btn-primary');
+      
+      // Clear user markers
+      userCoords = null;
+      if (userMarker) map.removeLayer(userMarker);
+      if (userCircle) map.removeLayer(userCircle);
+      document.getElementById('nearbyToggleWrapper').style.display = 'none';
+      filterListAndMap();
+      return;
+    }
+
+    // Start tracking
     gpsText.textContent = 'Locating...';
     gpsDot.style.backgroundColor = '#ffc107';
+    locateBtn.innerHTML = '<i class="fas fa-stop me-1"></i>Stop Tracking';
+    locateBtn.classList.remove('btn-primary');
+    locateBtn.classList.add('btn-danger');
 
-    navigator.geolocation.getCurrentPosition(
+    watchId = navigator.geolocation.watchPosition(
       (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        const accuracy = position.coords.accuracy;
+        const accuracy = position.coords.accuracy; // in meters
         userCoords = { lat, lng };
 
         gpsDot.classList.add('active');
         gpsText.textContent = 'GPS Active';
+        
+        // Show accuracy measurement
+        gpsAccuracy.style.display = 'block';
+        gpsAccuracy.textContent = `Accuracy: ±${Math.round(accuracy)} meters`;
+
         document.getElementById('nearbyToggleWrapper').style.display = 'block';
 
-        updateUserMarker(lat, lng, 'Your Current Location', accuracy);
+        updateUserMarker(lat, lng, 'Your Accurate Location', accuracy);
 
-        // Fit map bounds to show both user and nearby spots
+        // Adjust bounds
         const group = userCircle ? new L.featureGroup([userMarker, userCircle]) : new L.featureGroup([userMarker]);
         map.fitBounds(group.getBounds().pad(0.1));
 
-        // Re-render sidebar to calculate distances
+        // Re-filter and re-calculate distances
         filterListAndMap();
       },
       (error) => {
         console.error('[GPS Error]', error);
         gpsText.textContent = 'GPS Error';
         gpsDot.style.backgroundColor = 'var(--danger-color)';
-        alert('Failed to fetch your GPS coordinates. Please ensure location services are enabled.');
+        gpsAccuracy.style.display = 'none';
+        alert('Failed to fetch your GPS coordinates. Please ensure location permissions are enabled and secure HTTPS is used.');
+        
+        // Reset state
+        if (watchId !== null) {
+          navigator.geolocation.clearWatch(watchId);
+          watchId = null;
+        }
+        locateBtn.innerHTML = '<i class="fas fa-location-crosshairs me-1"></i>Locate Me';
+        locateBtn.classList.remove('btn-danger');
+        locateBtn.classList.add('btn-primary');
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0 // Force fresh coords without caching
+      }
     );
   }
 
   // Select Starting Point dropdown option
   function setStartingPoint(val) {
+    // Clear active geolocation watch if running
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+      document.getElementById('locateBtn').innerHTML = '<i class="fas fa-location-crosshairs me-1"></i>Locate Me';
+      document.getElementById('locateBtn').classList.remove('btn-danger');
+      document.getElementById('locateBtn').classList.add('btn-primary');
+      document.getElementById('gpsAccuracy').style.display = 'none';
+    }
+
     if (!val) {
       // Reset coordinates
       userCoords = null;
