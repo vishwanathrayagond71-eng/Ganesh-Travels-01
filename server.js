@@ -21,7 +21,8 @@ const PORT = process.env.PORT || 3000;
 // VIEW ENGINE SETUP - EJS Templates
 // ============================================================
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', process.env.NETLIFY ? path.join(process.cwd(), 'views') : path.join(__dirname, 'views'));
+
 
 // ============================================================
 // STATIC FILES - CSS, JS, Images
