@@ -551,6 +551,189 @@ async function initAllSheets() {
           rating: '4.7',
           image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600',
           createdAt: new Date().toLocaleString()
+        },
+        // --- NEW SEEDED INTERNATIONAL POIS FOR PARIS ---
+        {
+          id: 'poi-35',
+          name: 'Eiffel Tower',
+          category: 'tourist',
+          lat: '48.8584',
+          lng: '2.2945',
+          description: 'The iconic wrought-iron lattice tower on the Champ de Mars in Paris, named after the engineer Gustave Eiffel.',
+          address: 'Champ de Mars, 5 Avenue Anatole France, Paris, France',
+          rating: '4.9',
+          image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-36',
+          name: 'Louvre Museum',
+          category: 'tourist',
+          lat: '48.8606',
+          lng: '2.3376',
+          description: 'The world\'s largest art museum and a historic monument in Paris, home to the Mona Lisa and Venus de Milo.',
+          address: 'Rue de Rivoli, Paris, France',
+          rating: '4.8',
+          image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-37',
+          name: 'Notre-Dame Cathedral',
+          category: 'temple',
+          lat: '48.8530',
+          lng: '2.3499',
+          description: 'A medieval Catholic cathedral on the Île de la Cité in the 4th arrondissement of Paris, renowned for Gothic architecture.',
+          address: '6 Parvis Notre-Dame - Pl. Jean-Paul II, Paris, France',
+          rating: '4.7',
+          image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-38',
+          name: 'Le Bistro Parisien',
+          category: 'restaurant',
+          lat: '48.8592',
+          lng: '2.2980',
+          description: 'A beautiful riverside bistro serving classic French cuisine with an unobstructed view of the Eiffel Tower.',
+          address: 'Port de la Bourdonnais, Paris, France',
+          rating: '4.3',
+          image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-39',
+          name: 'Hotel Regina Louvre',
+          category: 'lodge',
+          lat: '48.8631',
+          lng: '2.3315',
+          description: 'A premium 5-star luxury hotel in central Paris, offering elegant rooms and direct views of the Louvre Museum.',
+          address: '2 Place des Pyramides, Paris, France',
+          rating: '4.6',
+          image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        // --- NEW SEEDED INTERNATIONAL POIS FOR DUBAI ---
+        {
+          id: 'poi-40',
+          name: 'Burj Khalifa Tower',
+          category: 'tourist',
+          lat: '25.1972',
+          lng: '55.2744',
+          description: 'The tallest building in the world, standing at 828 meters, offering stunning 360-degree observation decks.',
+          address: '1 Sheikh Mohammed bin Rashid Blvd, Downtown Dubai, Dubai, UAE',
+          rating: '4.9',
+          image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-41',
+          name: 'Dubai Mall & Aquarium',
+          category: 'tourist',
+          lat: '25.1995',
+          lng: '55.2796',
+          description: 'The world\'s largest shopping and entertainment destination, featuring the Dubai Aquarium and Underwater Zoo.',
+          address: 'Financial Center Rd, Downtown Dubai, Dubai, UAE',
+          rating: '4.8',
+          image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-42',
+          name: 'Al Farooq Mosque',
+          category: 'temple',
+          lat: '25.1706',
+          lng: '55.2289',
+          description: 'An architectural marvel also known as the Blue Mosque, inspired by the historic Blue Mosque in Istanbul.',
+          address: 'Al Safa 1, Dubai, UAE',
+          rating: '4.8',
+          image: 'https://images.unsplash.com/photo-1561361058-c24e01e34f44?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-43',
+          name: 'Armani Restaurant Dubai',
+          category: 'restaurant',
+          lat: '25.1970',
+          lng: '55.2742',
+          description: 'Fine dining restaurant located in Burj Khalifa, serving award-winning Italian cuisine and chef selections.',
+          address: 'Armani Hotel Dubai, Burj Khalifa, Dubai, UAE',
+          rating: '4.6',
+          image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-44',
+          name: 'Address Downtown Hotel',
+          category: 'lodge',
+          lat: '25.1939',
+          lng: '55.2818',
+          description: 'A 5-star flagship hotel in Dubai overlooking Burj Khalifa and the Dubai Fountain, offering luxury amenities.',
+          address: 'Sheikh Mohammed bin Rashid Blvd, Downtown Dubai, Dubai, UAE',
+          rating: '4.7',
+          image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        // --- NEW SEEDED INTERNATIONAL POIS FOR SINGAPORE ---
+        {
+          id: 'poi-45',
+          name: 'Marina Bay Sands',
+          category: 'tourist',
+          lat: '1.2829',
+          lng: '103.8587',
+          description: 'The iconic resort featuring the world\'s largest rooftop infinity pool, a casino, and luxury shopping.',
+          address: '10 Bayfront Ave, Singapore',
+          rating: '4.9',
+          image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-46',
+          name: 'Gardens by the Bay',
+          category: 'tourist',
+          lat: '1.2816',
+          lng: '103.8636',
+          description: 'A horticultural sanctuary featuring futuristic Supertree structures and the climate-controlled Flower Dome conservatory.',
+          address: '18 Marina Gardens Dr, Singapore',
+          rating: '4.8',
+          image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-47',
+          name: 'Sri Mariamman Temple',
+          category: 'temple',
+          lat: '1.2826',
+          lng: '103.8453',
+          description: 'Singapore\'s oldest Hindu temple, featuring a majestic six-tiered gopuram adorned with colorful sculptures.',
+          address: '244 South Bridge Rd, Chinatown, Singapore',
+          rating: '4.7',
+          image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-48',
+          name: 'Jumbo Seafood Restaurant',
+          category: 'restaurant',
+          lat: '1.2891',
+          lng: '103.8477',
+          description: 'Famous dining spot on Clarke Quay, celebrated for serving Singapore\'s legendary Chilli Crab and black pepper crab.',
+          address: '30 Merchant Rd, #01-01/02 Riverside Point, Singapore',
+          rating: '4.5',
+          image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=300',
+          createdAt: new Date().toLocaleString()
+        },
+        {
+          id: 'poi-49',
+          name: 'Marina Bay Sands Luxury Lodge',
+          category: 'lodge',
+          lat: '1.2839',
+          lng: '103.8596',
+          description: 'Exclusive 5-star lodging suites on the upper decks of Marina Bay Sands, offering premium butler service.',
+          address: '10 Bayfront Ave, Singapore',
+          rating: '4.9',
+          image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300',
+          createdAt: new Date().toLocaleString()
         }
       ];
       for (const p of defaultPois) {
@@ -580,13 +763,34 @@ async function initAllSheets() {
         { id: '11', name: 'Dubai, UAE', category: 'international', country: 'UAE', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600', description: 'Ultra-modern skyline, luxury shopping, desert safaris and world-record attractions.', price: '79999', rating: '4.7', reviews: '980', lat: '25.2048', lng: '55.2708', guideName: 'Zayed Al-Maktoum', createdAt: new Date().toLocaleString() },
         { id: '12', name: 'Maldives', category: 'beach', country: 'Maldives', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600', description: 'Paradise overwater bungalows, turquoise lagoons and exceptional marine life.', price: '129999', rating: '5.0', reviews: '670', lat: '3.2028', lng: '73.2207', guideName: 'Ali Naseer', createdAt: new Date().toLocaleString() },
         { id: '13', name: 'Bagalkote Heritage Hub', category: 'historical', country: 'India', image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600', description: 'Explore ancient Chalukyan rock-cut caves and temple architecture at Badami, Pattadakal, and Aihole.', price: '6999', rating: '4.8', reviews: '310', lat: '16.1812', lng: '75.6983', guideName: 'Ganesh Travels', createdAt: new Date().toLocaleString() },
-        // --- NEW SEEDED DESTINATIONS ---
-        { id: '14', name: 'Shimla, Himachal', category: 'hill', country: 'India', image: 'https://images.unsplash.com/photo-1597075687490-8f673c6c17f6?w=600', description: 'Summer capital of British India, offering Mall Road, toy train, and majestic mountain views.', price: '11999', rating: '4.7', reviews: '512', lat: '31.1048', lng: '77.1734', guideName: 'Rajinder Negi', createdAt: new Date().toLocaleString() },
-        { id: '15', name: 'Ooty, Tamil Nadu', category: 'hill', country: 'India', image: 'https://images.unsplash.com/photo-1589136777351-fdc9c9400c7e?w=600', description: 'The Queen of Hill Stations, famous for tea gardens, Doddabetta Peak, and scenic lakes.', price: '10999', rating: '4.6', reviews: '422', lat: '11.4102', lng: '76.6950', guideName: 'Murugan Swamy', createdAt: new Date().toLocaleString() },
-        { id: '16', name: 'Golden Temple, Amritsar', category: 'spiritual', country: 'India', image: 'https://images.unsplash.com/photo-1514222134-b57cbb8ce073?w=600', description: 'The most sacred shrine of Sikhism, showing architectural brilliance and infinite spirituality.', price: '5999', rating: '4.9', reviews: '820', lat: '31.6200', lng: '74.8765', guideName: 'Harpreet Singh', createdAt: new Date().toLocaleString() },
-        { id: '17', name: 'Mysuru Royal Palace', category: 'historical', country: 'India', image: 'https://images.unsplash.com/photo-1590766948561-f3083c24fa1e?w=600', description: 'The majestic Palace of Mysore, an architectural masterpiece of Indo-Saracenic design.', price: '4999', rating: '4.8', reviews: '640', lat: '12.3051', lng: '76.6551', guideName: 'Krishna Bhat', createdAt: new Date().toLocaleString() },
-        { id: '18', name: 'Hampi Heritage Ruins', category: 'historical', country: 'India', image: 'https://images.unsplash.com/photo-1600100397990-a4a84c207ede?w=600', description: 'UNESCO World Heritage site containing spectacular ruins of the Vijayanagara Empire.', price: '7999', rating: '4.8', reviews: '720', lat: '15.3350', lng: '76.4600', guideName: 'Mallesh Hampi', createdAt: new Date().toLocaleString() },
-        { id: '19', name: 'Srinagar Valley, Kashmir', category: 'nature', country: 'India', image: 'https://images.unsplash.com/photo-1566837945700-30057527ade0?w=600', description: 'Paradise on Earth, famous for houseboats on Dal Lake, Mughal Gardens, and snow mountains.', price: '21999', rating: '4.9', reviews: '880', lat: '34.0837', lng: '74.7973', guideName: 'Farooq Shah', createdAt: new Date().toLocaleString() }
+        // --- NEW SEEDED INTERNATIONAL DESTINATIONS (>25 sights excluding India) ---
+        { id: '14', name: 'Tokyo, Japan', category: 'international', country: 'Japan', image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?w=600', description: 'Futuristic city featuring neon skyscrapers, historic temples, cherry blossoms, and sushi.', price: '94999', rating: '4.8', reviews: '530', lat: '35.6762', lng: '139.6503', guideName: 'Kenji Sato', createdAt: new Date().toLocaleString() },
+        { id: '15', name: 'Rome, Italy', category: 'historical', country: 'Italy', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=600', description: 'The Eternal City showing ruins of the Colosseum, Roman Forum, and Vatican City art.', price: '84999', rating: '4.9', reviews: '672', lat: '41.9028', lng: '12.4964', guideName: 'Marco Rossi', createdAt: new Date().toLocaleString() },
+        { id: '16', name: 'London, UK', category: 'international', country: 'United Kingdom', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ca1ad?w=600', description: 'Capital of the UK, featuring Big Ben, Tower Bridge, London Eye, and royal palaces.', price: '99999', rating: '4.7', reviews: '822', lat: '51.5074', lng: '-0.1278', guideName: 'John Smith', createdAt: new Date().toLocaleString() },
+        { id: '17', name: 'New York, USA', category: 'international', country: 'USA', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=600', description: 'The Big Apple, featuring Times Square, Central Park, Broadway shows, and Statue of Liberty.', price: '119999', rating: '4.8', reviews: '990', lat: '40.7128', lng: '-74.0060', guideName: 'Sarah Jenkins', createdAt: new Date().toLocaleString() },
+        { id: '18', name: 'Sydney, Australia', category: 'beach', country: 'Australia', image: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=600', description: 'Stunning harbor city famous for Sydney Opera House, Harbour Bridge, and Bondi Beach.', price: '104999', rating: '4.7', reviews: '410', lat: '-33.8688', lng: '151.2093', guideName: 'David Warner', createdAt: new Date().toLocaleString() },
+        { id: '19', name: 'Singapore', category: 'international', country: 'Singapore', image: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600', description: 'Global financial hub featuring Gardens by the Bay, Marina Bay Sands, and Sentosa Island.', price: '44999', rating: '4.8', reviews: '810', lat: '1.3521', lng: '103.8198', guideName: 'Lee Wei', createdAt: new Date().toLocaleString() },
+        { id: '20', name: 'Bangkok, Thailand', category: 'international', country: 'Thailand', image: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600', description: 'Vibrant capital featuring ornate shrines, street food stalls, and bustling canal boat rides.', price: '34999', rating: '4.6', reviews: '930', lat: '13.7563', lng: '100.5018', guideName: 'Somchai K.', createdAt: new Date().toLocaleString() },
+        { id: '21', name: 'Swiss Alps, Switzerland', category: 'hill', country: 'Switzerland', image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600', description: 'Breathtaking peaks, snow sports, and traditional alpine chalets in the high Alps.', price: '134999', rating: '4.9', reviews: '490', lat: '46.5588', lng: '8.5721', guideName: 'Hans Meier', createdAt: new Date().toLocaleString() },
+        { id: '22', name: 'Santorini, Greece', category: 'beach', country: 'Greece', image: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=600', description: 'Volcanic island famous for whitewashed cliffside villas and blue-domed churches.', price: '114999', rating: '4.8', reviews: '610', lat: '36.3932', lng: '25.4615', guideName: 'Nikos P.', createdAt: new Date().toLocaleString() },
+        { id: '23', name: 'Reykjavik, Iceland', category: 'nature', country: 'Iceland', image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600', description: 'Gateway to Iceland\'s volcanic sights, geysers, thermal lagoons, and Northern Lights.', price: '129999', rating: '4.9', reviews: '310', lat: '64.1466', lng: '-21.9426', guideName: 'Aron Einar', createdAt: new Date().toLocaleString() },
+        { id: '24', name: 'Toronto, Canada', category: 'international', country: 'Canada', image: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600', description: 'Dynamic metropolis featuring CN Tower, Rogers Centre, and multicultural neighborhoods.', price: '94999', rating: '4.6', reviews: '280', lat: '43.6532', lng: '-79.3832', guideName: 'Michael G.', createdAt: new Date().toLocaleString() },
+        { id: '25', name: 'Kuala Lumpur, Malaysia', category: 'international', country: 'Malaysia', image: 'https://images.unsplash.com/photo-1538332576187-e2419a200c25?w=600', description: 'Home to the iconic 88-story Petronas Twin Towers, blending Malay, Chinese, and Indian cultures.', price: '37999', rating: '4.6', reviews: '390', lat: '3.1390', lng: '101.6869', guideName: 'Ahmad R.', createdAt: new Date().toLocaleString() },
+        { id: '26', name: 'Machu Picchu, Peru', category: 'historical', country: 'Peru', image: 'https://images.unsplash.com/photo-1507629269375-7496cf24a7bc?w=600', description: 'Ancient Incan citadel set high in the Andes Mountains, famed for giant dry-stone walls.', price: '144999', rating: '4.9', reviews: '340', lat: '-13.1631', lng: '-72.5450', guideName: 'Carlos M.', createdAt: new Date().toLocaleString() },
+        { id: '27', name: 'Kyoto, Japan', category: 'historical', country: 'Japan', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600', description: 'Famed for classical Buddhist temples, gardens, imperial palaces, and traditional wooden houses.', price: '89999', rating: '4.8', reviews: '410', lat: '35.0116', lng: '135.7681', guideName: 'Hiroshi T.', createdAt: new Date().toLocaleString() },
+        { id: '28', name: 'Petra, Jordan', category: 'historical', country: 'Jordan', image: 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=600', description: 'Famous archaeological site in Jordan\'s southwestern desert, containing tombs carved into cliffs.', price: '79999', rating: '4.8', reviews: '290', lat: '30.3285', lng: '35.4444', guideName: 'Youssef H.', createdAt: new Date().toLocaleString() },
+        { id: '29', name: 'Cairo, Egypt', category: 'historical', country: 'Egypt', image: 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?w=600', description: 'Set on the Nile River, home to the Giza Pyramid Complex and the Egyptian Museum.', price: '64999', rating: '4.7', reviews: '560', lat: '30.0444', lng: '31.2357', guideName: 'Omar F.', createdAt: new Date().toLocaleString() },
+        { id: '30', name: 'Cape Town, South Africa', category: 'nature', country: 'South Africa', image: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=600', description: 'Port city on South Africa\'s southwest coast, beneath the flat-topped Table Mountain.', price: '89999', rating: '4.8', reviews: '320', lat: '-33.9249', lng: '18.4241', guideName: 'Johan B.', createdAt: new Date().toLocaleString() },
+        { id: '31', name: 'Rio de Janeiro, Brazil', category: 'beach', country: 'Brazil', image: 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=600', description: 'Famous for Copacabana and Ipanema beaches, and the giant Christ the Redeemer statue.', price: '109999', rating: '4.7', reviews: '480', lat: '-22.9068', lng: '-43.1729', guideName: 'Thiago S.', createdAt: new Date().toLocaleString() },
+        { id: '32', name: 'Istanbul, Turkey', category: 'historical', country: 'Turkey', image: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=600', description: 'Historic city bridging Europe and Asia, home to Hagia Sophia and Topkapi Palace.', price: '59999', rating: '4.8', reviews: '640', lat: '41.0082', lng: '28.9784', guideName: 'Ahmet K.', createdAt: new Date().toLocaleString() },
+        { id: '33', name: 'Barcelona, Spain', category: 'beach', country: 'Spain', image: 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?w=600', description: 'Renowned for Antoni Gaudi\'s Sagrada Familia and vibrant beach boardwalks.', price: '79999', rating: '4.7', reviews: '710', lat: '41.3851', lng: '2.1734', guideName: 'Carlos S.', createdAt: new Date().toLocaleString() },
+        { id: '34', name: 'Amsterdam, Netherlands', category: 'international', country: 'Netherlands', image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600', description: 'Famed for its canal network, narrow houses with gabled facades, and artistic legacy.', price: '84999', rating: '4.8', reviews: '530', lat: '52.3676', lng: '4.9041', guideName: 'Jan V.', createdAt: new Date().toLocaleString() },
+        { id: '35', name: 'Phuket, Thailand', category: 'beach', country: 'Thailand', image: 'https://images.unsplash.com/photo-1589308078059-be1415eab4c3?w=600', description: 'Rainforested, mountainous island in the Andaman Sea, having some of Thailand\'s most popular beaches.', price: '39999', rating: '4.7', reviews: '460', lat: '7.8804', lng: 98.3923, guideName: 'Anan S.', createdAt: new Date().toLocaleString() },
+        { id: '36', name: 'Bora Bora, French Polynesia', category: 'beach', country: 'France', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600', description: 'Small South Pacific island northwest of Tahiti, famous for turquoise lagoons and overwater bungalows.', price: '179999', rating: '4.9', reviews: '180', lat: '-16.5004', lng: '-151.7415', guideName: 'Manu T.', createdAt: new Date().toLocaleString() },
+        { id: '37', name: 'Queenstown, New Zealand', category: 'nature', country: 'New Zealand', image: 'https://images.unsplash.com/photo-1507629269375-7496cf24a7bc?w=600', description: 'Adventure capital set against the dramatic Southern Alps, offering jet-boating and skiing.', price: '124999', rating: '4.8', reviews: '240', lat: '-45.0312', lng: '168.6626', guideName: 'Liam M.', createdAt: new Date().toLocaleString() },
+        { id: '38', name: 'Reykjavik (Blue Lagoon)', category: 'nature', country: 'Iceland', image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600', description: 'A geothermal spa in southwestern Iceland, renowned for its mineral-rich milky blue waters.', price: '139999', rating: '4.9', reviews: '310', lat: '63.8792', lng: '-22.4497', guideName: 'Jonas S.', createdAt: new Date().toLocaleString() },
+        { id: '39', name: 'Siem Reap, Cambodia', category: 'historical', country: 'Cambodia', image: 'https://images.unsplash.com/photo-1507629269375-7496cf24a7bc?w=600', description: 'Gateway to the ruins of Angkor Wat, the massive stone temple complex built during the Khmer Empire.', price: '49999', rating: '4.8', reviews: '180', lat: '13.3633', lng: '103.8564', guideName: 'Sovann K.', createdAt: new Date().toLocaleString() },
+        { id: '40', name: 'Seoul, South Korea', category: 'international', country: 'South Korea', image: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600', description: 'A huge metropolis where modern skyscrapers, high-tech subways, and pop culture meet Buddhist temples.', price: '74999', rating: '4.8', reviews: '420', lat: '37.5665', lng: '126.9780', guideName: 'Min-Su K.', createdAt: new Date().toLocaleString() }
       ];
       for (const d of defaultDests) {
         await addRow('destinations', d);
