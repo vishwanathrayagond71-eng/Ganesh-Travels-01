@@ -16,21 +16,18 @@ const path = require('path');
 // ============================================================
 // DATA: Destinations, Packages (Static data - no DB needed)
 // ============================================================
-const destinations = [
-  { id: 1, name: 'Taj Mahal, Agra', category: 'historical', country: 'India', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600', description: 'One of the Seven Wonders of the World — a magnificent marble mausoleum in Agra.', price: 8999, rating: 4.9, reviews: 1240, lat: 27.1751, lng: 78.0421 },
-  { id: 2, name: 'Goa Beaches', category: 'beach', country: 'India', image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600', description: 'Sun-kissed beaches, vibrant nightlife, and Portuguese heritage await you in Goa.', price: 12999, rating: 4.7, reviews: 890, lat: 15.4989, lng: 73.8278 },
-  { id: 3, name: 'Manali, Himachal', category: 'hill', country: 'India', image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=600', description: 'Scenic hill station surrounded by snow-capped Himalayas, perfect for adventure seekers.', price: 14999, rating: 4.8, reviews: 760, lat: 32.2396, lng: 77.1887 },
-  { id: 4, name: 'Jaipur, Rajasthan', category: 'historical', country: 'India', image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600', description: 'The Pink City with majestic forts, palaces and vibrant bazaars of royal Rajasthan.', price: 9999, rating: 4.6, reviews: 654, lat: 26.9124, lng: 75.7873 },
-  { id: 5, name: 'Kerala Backwaters', category: 'nature', country: 'India', image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600', description: 'Serene houseboat rides through lush green backwaters and coconut-fringed shores.', price: 16999, rating: 4.9, reviews: 920, lat: 9.4981, lng: 76.3388 },
-  { id: 6, name: 'Varanasi, UP', category: 'spiritual', country: 'India', image: 'https://images.unsplash.com/photo-1561361058-c24e01e34f44?w=600', description: 'The spiritual capital of India — ancient ghats, sacred rituals, and divine Ganga Aarti.', price: 7999, rating: 4.5, reviews: 540, lat: 25.3176, lng: 82.9739 },
-  { id: 7, name: 'Ladakh, J&K', category: 'hill', country: 'India', image: 'https://images.unsplash.com/photo-1536867114-e8b98cca2473?w=600', description: 'High-altitude desert landscape with monasteries, azure lakes and rugged mountains.', price: 24999, rating: 4.9, reviews: 430, lat: 34.1526, lng: 77.5771 },
-  { id: 8, name: 'Andaman Islands', category: 'beach', country: 'India', image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600', description: 'Crystal-clear waters, pristine white-sand beaches and vibrant coral reefs.', price: 29999, rating: 4.8, reviews: 380, lat: 11.6234, lng: 92.7265 },
-  { id: 9, name: 'Paris, France', category: 'international', country: 'France', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600', description: 'The City of Love — Eiffel Tower, world-class art, cuisine and fashion await.', price: 89999, rating: 4.9, reviews: 2100, lat: 48.8566, lng: 2.3522 },
-  { id: 10, name: 'Bali, Indonesia', category: 'international', country: 'Indonesia', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600', description: 'Island of Gods with lush rice terraces, Hindu temples, surf beaches and luxury resorts.', price: 54999, rating: 4.8, reviews: 1560, lat: -8.4095, lng: 115.1889 },
-  { id: 11, name: 'Dubai, UAE', category: 'international', country: 'UAE', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600', description: 'Ultra-modern skyline, luxury shopping, desert safaris and world-record attractions.', price: 79999, rating: 4.7, reviews: 980, lat: 25.2048, lng: 55.2708 },
-  { id: 12, name: 'Maldives', category: 'beach', country: 'Maldives', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600', description: 'Paradise overwater bungalows, turquoise lagoons and exceptional marine life.', price: 129999, rating: 5.0, reviews: 670, lat: 3.2028, lng: 73.2207 },
-  { id: 13, name: 'Bagalkote Heritage Hub', category: 'historical', country: 'India', image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600', description: 'Explore ancient Chalukyan rock-cut caves and temple architecture at Badami, Pattadakal, and Aihole.', price: 6999, rating: 4.8, reviews: 310, lat: 16.1812, lng: 75.6983 }
-];
+// Helper to format destinations data types consistently
+function formatDestinations(dests) {
+  return dests.map(d => ({
+    ...d,
+    id: parseInt(d.id) || d.id,
+    price: parseFloat(d.price) || 0,
+    rating: parseFloat(d.rating) || 5.0,
+    reviews: parseInt(d.reviews) || 0,
+    lat: parseFloat(d.lat) || 0,
+    lng: parseFloat(d.lng) || 0
+  }));
+}
 
 const packages = [
   { id: 1, name: 'Golden Triangle Family Tour', type: 'family', image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600', price: 34999, duration: '7 Days / 6 Nights', destinations: 'Delhi - Agra - Jaipur', services: ['Hotel (4★)', 'Breakfast & Dinner', 'AC Transport', 'Tour Guide', 'Entry Tickets'], rating: 4.8 },
@@ -50,17 +47,18 @@ router.get('/', async (req, res) => {
   try {
     const reviews = await excel.readData('reviews');
     const approvedReviews = reviews.filter(r => r.status === 'approved').slice(-6);
+    const dests = await excel.readData('destinations');
     res.render('home', {
       title: 'Ganesh Travels - Discover India & Beyond',
       user: req.session.user || null,
-      destinations: destinations.slice(0, 6),
+      destinations: formatDestinations(dests).slice(0, 6),
       packages: packages.slice(0, 3),
       reviews: approvedReviews,
       messages: req.flash()
     });
   } catch (err) {
     console.error(err);
-    res.render('home', { title: 'Ganesh Travels', user: req.session.user || null, destinations: destinations.slice(0, 6), packages: packages.slice(0, 3), reviews: [], messages: {} });
+    res.render('home', { title: 'Ganesh Travels', user: req.session.user || null, destinations: [], packages: packages.slice(0, 3), reviews: [], messages: {} });
   }
 });
 
@@ -75,15 +73,23 @@ router.get('/about', async (req, res) => {
 });
 
 // Destinations Page
-router.get('/destinations', (req, res) => {
-  res.render('destinations', { title: 'Destinations - Ganesh Travels', user: req.session.user || null, destinations, messages: req.flash() });
+router.get('/destinations', async (req, res) => {
+  try {
+    const dests = await excel.readData('destinations');
+    res.render('destinations', { title: 'Destinations - Ganesh Travels', user: req.session.user || null, destinations: formatDestinations(dests), messages: req.flash() });
+  } catch (err) {
+    console.error(err);
+    res.render('destinations', { title: 'Destinations - Ganesh Travels', user: req.session.user || null, destinations: [], messages: req.flash() });
+  }
 });
 
 // Destination Detail Page with Map & Nearby POIs Guide
 router.get('/destinations/:id', async (req, res) => {
   try {
+    const dests = await excel.readData('destinations');
+    const formattedDests = formatDestinations(dests);
     const destId = parseInt(req.params.id);
-    const destination = destinations.find(d => d.id === destId);
+    const destination = formattedDests.find(d => d.id === destId);
     if (!destination) {
       req.flash('error', 'Destination not found.');
       return res.redirect('/destinations');
@@ -147,7 +153,7 @@ router.get('/destinations/:id', async (req, res) => {
       title: `${destination.name} - Local Guide & Booking | Ganesh Travels`,
       user: req.session.user || null,
       destination,
-      destinations, // passed to populate booking form options
+      destinations: formattedDests, // passed to populate booking form options
       nearbyPois,
       messages: req.flash()
     });
@@ -213,9 +219,15 @@ router.post('/newsletter', async (req, res) => {
 });
 
 // Booking Page (GET)
-router.get('/booking', (req, res) => {
-  const preDestination = req.query.destination || '';
-  res.render('booking', { title: 'Book Your Tour - Ganesh Travels', user: req.session.user || null, destinations, packages, preDestination, messages: req.flash() });
+router.get('/booking', async (req, res) => {
+  try {
+    const dests = await excel.readData('destinations');
+    const preDestination = req.query.destination || '';
+    res.render('booking', { title: 'Book Your Tour - Ganesh Travels', user: req.session.user || null, destinations: formatDestinations(dests), packages, preDestination, messages: req.flash() });
+  } catch (err) {
+    console.error(err);
+    res.render('booking', { title: 'Book Your Tour - Ganesh Travels', user: req.session.user || null, destinations: [], packages, preDestination: '', messages: req.flash() });
+  }
 });
 
 // Booking Submit (POST)
@@ -230,7 +242,7 @@ router.post('/booking', async (req, res) => {
     const userEmail = req.session.user ? req.session.user.email : email;
     await excel.addRow('bookings', {
       id: uuidv4(), userId, userName: name, userEmail, destination, date, guests,
-      name, email, phone, message: message || '', status: 'pending', createdAt: new Date().toLocaleString()
+      name, email, phone, message: message || '', status: 'pending', guideName: '', createdAt: new Date().toLocaleString()
     });
     req.flash('success', `Booking confirmed! 🎉 We'll contact you at ${email} soon.`);
     res.redirect('/booking');
@@ -246,9 +258,10 @@ router.get('/reviews', async (req, res) => {
   try {
     const reviews = await excel.readData('reviews');
     const approvedReviews = reviews.filter(r => r.status === 'approved');
-    res.render('reviews', { title: 'Customer Reviews - Ganesh Travels', user: req.session.user || null, reviews: approvedReviews, destinations, messages: req.flash() });
+    const dests = await excel.readData('destinations');
+    res.render('reviews', { title: 'Customer Reviews - Ganesh Travels', user: req.session.user || null, reviews: approvedReviews, destinations: formatDestinations(dests), messages: req.flash() });
   } catch (err) {
-    res.render('reviews', { title: 'Reviews', user: req.session.user || null, reviews: [], destinations, messages: {} });
+    res.render('reviews', { title: 'Reviews', user: req.session.user || null, reviews: [], destinations: [], messages: {} });
   }
 });
 
@@ -459,6 +472,7 @@ router.get('/admin/dashboard', requireAdmin, async (req, res) => {
     const settings = await excel.readData('settings');
     const team = await excel.readData('team');
     const pois = await excel.readData('pois');
+    const destinationsList = await excel.readData('destinations');
     
     // Find settings variables
     const phoneSetting = settings.find(s => s.key === 'contact_phone');
@@ -470,6 +484,7 @@ router.get('/admin/dashboard', requireAdmin, async (req, res) => {
       title: 'Admin Dashboard - Ganesh Travels',
       admin: req.session.admin,
       users, bookings, reviews, contacts, newsletter, settings, team, pois,
+      destinations: formatDestinations(destinationsList),
       currentPhone, currentEmail,
       messages: req.flash()
     });
@@ -567,11 +582,101 @@ router.post('/admin/pois/add', requireAdmin, async (req, res) => {
   }
 });
 
+// Admin Add Destination
+router.post('/admin/destinations/add', requireAdmin, async (req, res) => {
+  try {
+    const { name, category, country, image, description, price, rating, reviews, lat, lng, guideName } = req.body;
+    if (!name || !category || !country || !price || !lat || !lng) {
+      req.flash('error', 'Required fields (Name, Category, Country, Price, Lat, Lng) are missing.');
+      return res.redirect('/admin/dashboard');
+    }
+    
+    // Find highest existing ID to increment it
+    const dests = await excel.readData('destinations');
+    let maxId = 0;
+    dests.forEach(d => {
+      const idNum = parseInt(d.id);
+      if (idNum > maxId) maxId = idNum;
+    });
+    const newId = String(maxId + 1);
+
+    await excel.addRow('destinations', {
+      id: newId,
+      name,
+      category,
+      country,
+      image: image || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600',
+      description: description || '',
+      price: String(price).trim(),
+      rating: rating || '5.0',
+      reviews: reviews || '0',
+      lat: String(lat).trim(),
+      lng: String(lng).trim(),
+      guideName: guideName || '',
+      createdAt: new Date().toLocaleString()
+    });
+
+    req.flash('success', 'Destination added successfully! 🗺️');
+    res.redirect('/admin/dashboard');
+  } catch (err) {
+    console.error('[Add Destination Error]:', err);
+    req.flash('error', 'Failed to add destination.');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Admin Edit Destination Price and Guide
+router.post('/admin/destinations/edit', requireAdmin, async (req, res) => {
+  try {
+    const { id, price, guideName } = req.body;
+    if (!id || !price) {
+      req.flash('error', 'Destination ID and Price are required to edit.');
+      return res.redirect('/admin/dashboard');
+    }
+
+    await excel.updateRow('destinations', id, {
+      price: String(price).trim(),
+      guideName: guideName || ''
+    });
+
+    req.flash('success', 'Destination updated successfully! 💵');
+    res.redirect('/admin/dashboard');
+  } catch (err) {
+    console.error('[Edit Destination Error]:', err);
+    req.flash('error', 'Failed to update destination.');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Admin Update Booking Status & Guide Allotment
+router.post('/admin/bookings/update/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, guideName } = req.body;
+    if (!status) {
+      req.flash('error', 'Status is required.');
+      return res.redirect('/admin/dashboard');
+    }
+
+    await excel.updateRow('bookings', id, {
+      status,
+      guideName: guideName || ''
+    });
+
+    req.flash('success', 'Booking updated and guide allotted successfully! 💼');
+    res.redirect('/admin/dashboard');
+  } catch (err) {
+    console.error('[Update Booking Error]:', err);
+    req.flash('error', 'Failed to update booking.');
+    res.redirect('/admin/dashboard');
+  }
+});
+
 // Admin Delete Record
 router.post('/admin/delete/:sheet/:id', requireAdmin, async (req, res) => {
   try {
     const { sheet, id } = req.params;
-    const validSheets = ['users', 'bookings', 'reviews', 'contacts', 'newsletter', 'settings', 'team', 'pois'];
+    const validSheets = ['users', 'bookings', 'reviews', 'contacts', 'newsletter', 'settings', 'team', 'pois', 'destinations'];
     if (!validSheets.includes(sheet)) {
       req.flash('error', 'Invalid sheet name.');
       return res.redirect('/admin/dashboard');
@@ -589,7 +694,7 @@ router.post('/admin/delete/:sheet/:id', requireAdmin, async (req, res) => {
 // Admin Download Excel File
 router.get('/admin/download/:sheet', requireAdmin, async (req, res) => {
   const { sheet } = req.params;
-  const validSheets = ['users', 'bookings', 'reviews', 'contacts', 'newsletter', 'settings', 'team', 'pois'];
+  const validSheets = ['users', 'bookings', 'reviews', 'contacts', 'newsletter', 'settings', 'team', 'pois', 'destinations'];
   if (!validSheets.includes(sheet)) {
     req.flash('error', 'Invalid file.');
     return res.redirect('/admin/dashboard');

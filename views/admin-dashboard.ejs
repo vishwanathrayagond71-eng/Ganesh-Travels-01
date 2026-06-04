@@ -39,6 +39,7 @@
     <a href="#" onclick="showSection('overview')" class="active" id="nav-overview"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
     <a href="#" onclick="showSection('users')" id="nav-users"><i class="fas fa-users"></i>Users (<%= users.length %>)</a>
     <a href="#" onclick="showSection('bookings')" id="nav-bookings"><i class="fas fa-calendar-check"></i>Bookings (<%= bookings.length %>)</a>
+    <a href="#" onclick="showSection('destinations')" id="nav-destinations"><i class="fas fa-map-location-dot"></i>Destinations (<%= destinations.length %>)</a>
     <a href="#" onclick="showSection('reviews')" id="nav-reviews"><i class="fas fa-star"></i>Reviews (<%= reviews.length %>)</a>
     <a href="#" onclick="showSection('contacts')" id="nav-contacts"><i class="fas fa-envelope"></i>Contacts (<%= contacts.length %>)</a>
     <a href="#" onclick="showSection('newsletter')" id="nav-newsletter"><i class="fas fa-newspaper"></i>Newsletter (<%= newsletter.length %>)</a>
@@ -110,6 +111,7 @@
       <div class="d-flex flex-wrap gap-2">
         <a href="/admin/download/users" class="btn btn-outline-primary"><i class="fas fa-file-excel me-1"></i>Users.xlsx</a>
         <a href="/admin/download/bookings" class="btn btn-outline-success"><i class="fas fa-file-excel me-1"></i>Bookings.xlsx</a>
+        <a href="/admin/download/destinations" class="btn btn-outline-dark"><i class="fas fa-file-excel me-1"></i>Destinations.xlsx</a>
         <a href="/admin/download/reviews" class="btn btn-outline-warning"><i class="fas fa-file-excel me-1"></i>Reviews.xlsx</a>
         <a href="/admin/download/contacts" class="btn btn-outline-info"><i class="fas fa-file-excel me-1"></i>Contacts.xlsx</a>
         <a href="/admin/download/newsletter" class="btn btn-outline-secondary"><i class="fas fa-file-excel me-1"></i>Newsletter.xlsx</a>
@@ -191,7 +193,7 @@
       <% } else { %>
       <div class="table-responsive">
         <table class="table table-hover align-middle">
-          <thead class="table-dark"><tr><th>#</th><th>Name</th><th>Email</th><th>Destination</th><th>Date</th><th>Guests</th><th>Status</th><th>Action</th></tr></thead>
+          <thead class="table-dark"><tr><th>#</th><th>Name</th><th>Email</th><th>Destination</th><th>Date</th><th>Guests</th><th>Allot Guide & Status</th><th>Action</th></tr></thead>
           <tbody>
             <% bookings.forEach((b, i) => { %>
             <tr>
@@ -201,7 +203,22 @@
               <td><%= b.destination %></td>
               <td><%= b.date %></td>
               <td><%= b.guests %></td>
-              <td><span class="badge bg-warning text-dark"><%= b.status %></span></td>
+              <td>
+                <form action="/admin/bookings/update/<%= b.id %>" method="POST" class="d-flex gap-1 align-items-center mb-0">
+                  <select name="status" class="form-select form-select-sm" style="width: 110px; font-size: 0.8rem; font-weight:600;">
+                    <option value="pending" <%= b.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="confirmed" <%= b.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
+                    <option value="cancelled" <%= b.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                  </select>
+                  <select name="guideName" class="form-select form-select-sm" style="width: 130px; font-size: 0.8rem;">
+                    <option value="">-- Allot Guide --</option>
+                    <% team.forEach(member => { %>
+                      <option value="<%= member.name %>" <%= b.guideName === member.name ? 'selected' : '' %>><%= member.name %> (<%= member.role %>)</option>
+                    <% }) %>
+                  </select>
+                  <button type="submit" class="btn btn-success btn-sm px-2 py-1" style="font-size:0.75rem;" title="Save Status & Guide"><i class="fas fa-save"></i></button>
+                </form>
+              </td>
               <td>
                 <form action="/admin/delete/bookings/<%= b.id %>" method="POST" onsubmit="return confirm('Delete this booking?')">
                   <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
@@ -213,6 +230,148 @@
         </table>
       </div>
       <% } %>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       DESTINATIONS SECTION
+       ============================================================ -->
+  <div class="admin-section" id="section-destinations">
+    <div class="row g-4">
+      <!-- Add Destination Form -->
+      <div class="col-lg-4">
+        <div class="admin-table-card">
+          <h6 class="mb-4"><i class="fas fa-map-location-dot me-2"></i>Add Destination</h6>
+          <form action="/admin/destinations/add" method="POST">
+            <div class="mb-3">
+              <label class="form-label">Destination Name *</label>
+              <input type="text" name="name" class="form-control" placeholder="Shimla, Himachal" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Category *</label>
+              <select name="category" class="form-select" required>
+                <option value="historical">🏰 Historical</option>
+                <option value="beach">🏖️ Beach</option>
+                <option value="hill">⛰️ Hill Station</option>
+                <option value="nature">🌿 Nature</option>
+                <option value="spiritual">🛕 Spiritual</option>
+                <option value="international">✈️ International</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Country *</label>
+              <input type="text" name="country" class="form-control" placeholder="India" required>
+            </div>
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label class="form-label">Price (₹) *</label>
+                <input type="number" name="price" class="form-control" placeholder="11999" required>
+              </div>
+              <div class="col-6 mb-3">
+                <label class="form-label">Initial Rating</label>
+                <input type="number" name="rating" class="form-control" step="0.1" min="1" max="5" value="5.0">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label class="form-label">Latitude *</label>
+                <input type="text" name="lat" class="form-control" placeholder="31.1048" required>
+              </div>
+              <div class="col-6 mb-3">
+                <label class="form-label">Longitude *</label>
+                <input type="text" name="lng" class="form-control" placeholder="77.1734" required>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Image URL (Optional)</label>
+              <input type="url" name="image" class="form-control" placeholder="https://images.unsplash.com/photo-...">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Default Local Guide</label>
+              <select name="guideName" class="form-select">
+                <option value="">-- Choose Guide --</option>
+                <% team.forEach(member => { %>
+                  <option value="<%= member.name %>"><%= member.name %> (<%= member.role %>)</option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea name="description" class="form-control" rows="3" placeholder="Summer capital of British India..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-success w-100"><i class="fas fa-plus me-1"></i>Add Destination</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Current Destinations List -->
+      <div class="col-lg-8">
+        <div class="admin-table-card">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h6 class="mb-0"><i class="fas fa-route me-2"></i>Current Sights & Destinations (<%= destinations.length %>)</h6>
+            <a href="/admin/download/destinations" class="btn btn-sm btn-outline-primary"><i class="fas fa-download me-1"></i>Download</a>
+          </div>
+          <% if (destinations.length === 0) { %>
+            <p class="text-muted">No destinations added yet.</p>
+          <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Operate Price & Guide Allotment</th>
+                    <th>Coords</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% destinations.forEach(d => { %>
+                    <tr>
+                      <td>
+                        <img src="<%= d.image || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=300' %>" alt="<%= d.name %>" style="width: 55px; height: 40px; object-fit: cover; border-radius: 6px;">
+                      </td>
+                      <td>
+                        <strong><%= d.name %></strong>
+                        <div class="text-muted small"><%= d.country %></div>
+                      </td>
+                      <td>
+                        <span class="badge text-bg-light border text-capitalize"><%= d.category %></span>
+                      </td>
+                      <td>
+                        <!-- Inline Edit form to Operate Prices and Guides -->
+                        <form action="/admin/destinations/edit" method="POST" class="d-flex gap-1 align-items-center mb-0">
+                          <input type="hidden" name="id" value="<%= d.id %>">
+                          <div class="input-group input-group-sm" style="width: 105px;">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" name="price" class="form-control" value="<%= Math.round(d.price) %>" required style="font-weight: 700;">
+                          </div>
+                          <select name="guideName" class="form-select form-select-sm" style="width: 130px; font-size: 0.8rem;">
+                            <option value="">-- Allot Guide --</option>
+                            <% team.forEach(member => { %>
+                              <option value="<%= member.name %>" <%= d.guideName === member.name ? 'selected' : '' %>><%= member.name %></option>
+                            <% }) %>
+                          </select>
+                          <button type="submit" class="btn btn-primary btn-sm px-2 py-1" style="font-size:0.75rem;" title="Save updates"><i class="fas fa-check"></i></button>
+                        </form>
+                      </td>
+                      <td>
+                        <small class="text-secondary font-monospace" style="font-size: 11px;"><%= d.lat %>, <%= d.lng %></small>
+                      </td>
+                      <td>
+                        <form action="/admin/delete/destinations/<%= d.id %>" method="POST" onsubmit="return confirm('Delete this destination? This cannot be undone.')">
+                          <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                        </form>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+      </div>
     </div>
   </div>
 
