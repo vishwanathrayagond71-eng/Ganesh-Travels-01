@@ -400,19 +400,32 @@
   document.addEventListener('DOMContentLoaded', () => {
     // Default view: Vidyagiri, Bagalkote, Karnataka
     const defaultCenter = [16.1812, 75.6983];
+    // Setup Base Maps (Street View & Satellite View)
+    const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    });
+
+    const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      maxZoom: 19
+    });
+
     map = L.map('map', {
-      zoomControl: false // Position zoom control on bottom right instead
+      zoomControl: false,
+      layers: [streetMap] // Default view layer
     }).setView(defaultCenter, 13);
 
     L.control.zoom({
       position: 'bottomright'
     }).addTo(map);
 
-    // Standard high-quality OSM tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    // Setup Layer Control Toggle in top right
+    const baseMaps = {
+      "🗺️ Street Map": streetMap,
+      "🛰️ Satellite": satelliteMap
+    };
+    L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
 
     // Plot POIs onto the map
     renderMapMarkers(rawPois);
