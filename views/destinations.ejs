@@ -620,6 +620,19 @@ function hookCardClickListeners() {
 }
 hookCardClickListeners();
 
+// Parse query parameter 'q' on page load to trigger search automatically
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const q = urlParams.get('q');
+  if (q) {
+    const searchInput = document.getElementById('destSearch');
+    if (searchInput) {
+      searchInput.value = q;
+      performBackendSearch(q);
+    }
+  }
+});
+
 function trackRecentlyViewed(dest) {
   let recent = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
   recent = recent.filter(d => d.name !== dest.name);
