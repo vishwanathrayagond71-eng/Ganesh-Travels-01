@@ -23,10 +23,12 @@
     <div class="filter-bar">
       <div class="row g-3 align-items-center">
         <div class="col-md-5">
-          <div class="search-input-wrapper">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="destSearch" class="form-control search-input" placeholder="Search destinations...">
+          <div class="search-input-wrapper" style="position: relative;">
+            <i class="fas fa-search search-icon" id="searchBtn" style="cursor: pointer;" onclick="triggerSearch()"></i>
+            <input type="text" id="destSearch" class="form-control search-input" placeholder="Search districts or cities in India..." onkeypress="handleSearchKey(event)" autocomplete="off">
+            <div id="searchSuggestions" class="list-group" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; display: none; max-height: 250px; overflow-y: auto; box-shadow: var(--shadow-md); border-radius: 8px; border: 1px solid var(--border-color); background: white;"></div>
           </div>
+          <div class="text-muted mt-1" style="font-size:0.75rem;"><i class="fas fa-circle-info me-1"></i>Start typing to select from 800+ Indian districts instantly.</div>
         </div>
         <div class="col-md-7">
           <div class="filter-btns">
@@ -34,7 +36,7 @@
             <button class="filter-btn" data-filter="historical">Historical</button>
             <button class="filter-btn" data-filter="beach">Beaches</button>
             <button class="filter-btn" data-filter="hill">Hill Stations</button>
-            <button class="filter-btn" data-filter="international">International</button>
+            <button class="filter-btn" data-filter="nature">Nature</button>
             <button class="filter-btn" data-filter="spiritual">Spiritual</button>
           </div>
         </div>
@@ -104,7 +106,126 @@
       .destination-desc {
         flex-grow: 1;
       }
+      
+      /* POI Sights Styles */
+      .poi-item-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm, 12px);
+        overflow: hidden;
+        display: flex;
+        gap: 15px;
+        padding: 15px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        cursor: pointer;
+        text-align: left;
+        height: 100%;
+      }
+      .poi-item-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-light, #457b9d);
+      }
+      .poi-badge {
+        text-transform: capitalize;
+        font-weight: 700;
+        font-size: 0.72rem;
+        padding: 2px 8px;
+        border-radius: 12px;
+        display: inline-block;
+      }
+      .badge-temple { background: rgba(233, 196, 106, 0.2); color: #b58900; }
+      .badge-tourist { background: rgba(29, 53, 87, 0.1); color: var(--primary-color); }
+      .badge-restaurant { background: rgba(230, 57, 70, 0.1); color: var(--danger-color); }
+      .badge-hotel, .badge-lodge { background: rgba(42, 157, 143, 0.1); color: var(--success-color); }
+      .badge-falls { background: rgba(0, 180, 216, 0.1); color: #0077b6; }
+      
+      .poi-item-img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        flex-shrink: 0;
+      }
+      .poi-item-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .poi-item-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin: 0 0 4px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .poi-item-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        margin-bottom: 6px;
+      }
+      .poi-dist-badge {
+        font-weight: 700;
+        color: var(--primary-light);
+      }
+      .poi-item-desc {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      
+      .poi-tabs .nav-link {
+        font-weight: 700;
+        color: var(--text-dark);
+        border: none;
+        padding: 10px 18px;
+        border-radius: 30px;
+        margin-right: 8px;
+        transition: var(--transition);
+        background: transparent;
+      }
+      .poi-tabs .nav-link.active {
+        background: var(--primary-color, #1d3557) !important;
+        color: white !important;
+      }
     </style>
+
+    <!-- Dynamic Nearby Attractions & Sights -->
+    <div id="nearbyContainer" class="mt-5" style="display:none">
+      
+      <!-- Nearby Sights -->
+      <div id="nearbySights" class="mb-5">
+        <h4 class="mb-3"><i class="fas fa-compass text-danger me-2"></i>Nearby Sights & Attractions</h4>
+        <div class="poi-tabs">
+          <ul class="nav nav-pills mb-3" id="poiSearchTabs" role="tablist">
+            <!-- Pill buttons dynamically added -->
+          </ul>
+          <div class="tab-content" id="poiSearchContent">
+            <!-- Dynamic grids -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Nearby Destinations -->
+      <div id="nearbyDestinations" class="mb-5">
+        <h4 class="mb-3"><i class="fas fa-route text-primary me-2"></i>Other Destinations Nearby</h4>
+        <div class="row g-4" id="nearbyDestGrid">
+          <!-- Dynamic destination cards -->
+        </div>
+      </div>
+      
+    </div>
 
     <!-- Recently Viewed -->
     <div id="recentlyViewed" class="mt-5" style="display:none">
@@ -134,12 +255,41 @@
 <%- include('partials/footer') %>
 
 <script>
-// Filter destinations by category
+// Keep a reference to the initial server-side rendered destinations HTML to easily reset
+const initialGridHtml = document.getElementById('destinationsGrid').innerHTML;
+
+let allDistricts = [];
+
+// Fetch complete list of 800+ districts of India
+fetch('/js/districts.json')
+  .then(res => res.json())
+  .then(data => {
+    if (data && data.states) {
+      data.states.forEach(s => {
+        s.districts.forEach(d => {
+          allDistricts.push({
+            name: `${d}, ${s.state}`,
+            districtName: d,
+            stateName: s.state
+          });
+        });
+      });
+      // Sort alphabetically
+      allDistricts.sort((a, b) => a.name.localeCompare(b.name));
+    }
+  })
+  .catch(err => console.error('Failed to load districts list:', err));
+
+// Filter destinations locally by category first (if displaying the initial list)
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     this.classList.add('active');
     const filter = this.dataset.filter;
+    
+    // If we've loaded custom search results, let's reset to show all when category filters are clicked
+    const searchVal = document.getElementById('destSearch').value.trim();
+    
     document.querySelectorAll('.dest-item').forEach(item => {
       if (filter === 'all' || item.dataset.category === filter) {
         item.style.display = 'block';
@@ -151,23 +301,324 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   });
 });
 
-// Search filter
+// Real-time client-side filter helper as they type, with debounced backend search fallback
+let searchTimeout = null;
+
 document.getElementById('destSearch').addEventListener('input', function() {
-  const q = this.value.toLowerCase();
-  document.querySelectorAll('.dest-item').forEach(item => {
-    item.style.display = item.dataset.name.includes(q) ? 'block' : 'none';
+  const q = this.value.toLowerCase().trim();
+  
+  if (searchTimeout) clearTimeout(searchTimeout);
+  
+  const suggestionsBox = document.getElementById('searchSuggestions');
+  
+  if (!q) {
+    suggestionsBox.style.display = 'none';
+    resetSearch();
+    return;
+  }
+
+  // 1. Show suggestions from the 800+ districts list
+  const matches = allDistricts.filter(d => d.name.toLowerCase().includes(q));
+  if (matches.length > 0) {
+    suggestionsBox.innerHTML = matches.slice(0, 8).map(m => `
+      <button type="button" class="list-group-item list-group-item-action text-start" onclick="selectSuggestion('${m.districtName.replace(/'/g, "\\'")}', '${m.stateName.replace(/'/g, "\\'")}')" style="cursor: pointer; padding: 10px 15px; border: none; font-size: 0.88rem; background: white; border-bottom: 1px solid var(--border-color);">
+        <i class="fas fa-location-dot text-primary me-2"></i><strong>${m.districtName}</strong>, <span class="text-muted">${m.stateName}</span>
+      </button>
+    `).join('');
+    suggestionsBox.style.display = 'block';
+  } else {
+    suggestionsBox.style.display = 'none';
+  }
+  
+  // 2. Filter local cards
+  let localMatchCount = 0;
+  document.querySelectorAll('#destinationsGrid > .dest-item').forEach(item => {
+    const matchesLocal = item.dataset.name.includes(q);
+    item.style.display = matchesLocal ? 'block' : 'none';
+    if (matchesLocal) localMatchCount++;
   });
+  
+  // 3. If no local matches, schedule a debounced backend search
+  if (localMatchCount === 0) {
+    const grid = document.getElementById('destinationsGrid');
+    if (!document.getElementById('search-all-india-msg')) {
+      grid.innerHTML = `
+        <div id="search-all-india-msg" class="col-12 text-center my-5" style="animation: fadeInUp 0.4s ease;">
+          <div class="spinner-grow text-primary mb-3" role="status" style="width: 2rem; height: 2rem;"></div>
+          <h5>Searching all states, districts and villages of India for "${this.value}"...</h5>
+          <p class="text-muted">Select a district from the dropdown list, press Enter, or wait a brief moment.</p>
+        </div>
+      `;
+    }
+    
+    searchTimeout = setTimeout(() => {
+      suggestionsBox.style.display = 'none';
+      performBackendSearch(this.value);
+    }, 1200);
+  } else {
+    document.getElementById('nearbyContainer').style.display = 'none';
+  }
 });
 
-// Track recently viewed destinations
-document.querySelectorAll('.destination-card').forEach(card => {
-  card.addEventListener('click', function() {
-    const name = this.querySelector('.destination-name')?.textContent;
-    const img = this.querySelector('.destination-img')?.src;
-    const price = this.querySelector('.price-badge')?.textContent;
-    if (name) trackRecentlyViewed({ name, img, price });
-  });
+// Hide suggestions box when clicking outside
+document.addEventListener('click', function(e) {
+  const box = document.getElementById('searchSuggestions');
+  const input = document.getElementById('destSearch');
+  if (box && e.target !== box && e.target !== input) {
+    box.style.display = 'none';
+  }
 });
+
+// Select a suggestion from the dropdown list
+function selectSuggestion(district, state) {
+  const input = document.getElementById('destSearch');
+  input.value = `${district}, ${state}`;
+  document.getElementById('searchSuggestions').style.display = 'none';
+  performBackendSearch(`${district}, ${state}`);
+}
+
+// Trigger search when pressing Enter
+function handleSearchKey(e) {
+  if (e.key === 'Enter') {
+    triggerSearch();
+  }
+}
+
+// Trigger search
+function triggerSearch() {
+  const q = document.getElementById('destSearch').value;
+  performBackendSearch(q);
+}
+
+// Reset search state to original
+function resetSearch() {
+  if (searchTimeout) clearTimeout(searchTimeout);
+  document.getElementById('destSearch').value = '';
+  document.getElementById('destinationsGrid').innerHTML = initialGridHtml;
+  document.getElementById('nearbyContainer').style.display = 'none';
+  
+  // Re-hook click listeners for the reset elements
+  hookCardClickListeners();
+  
+  // Reset filter buttons
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+}
+
+// Render a single destination card in JavaScript
+function renderCard(dest) {
+  const ratingStars = Array.from({length: 5}, (_, i) => 
+    `<i class="fas fa-star ${i < Math.round(dest.rating) ? 'text-warning' : 'text-muted'}" style="font-size:12px"></i>`
+  ).join('');
+
+  return `
+    <div class="col-md-6 col-lg-4 dest-item" data-category="${dest.category}" data-name="${dest.name.toLowerCase()}">
+      <div class="destination-card">
+        <div class="destination-img-wrapper">
+          <img src="${dest.image}" alt="${dest.name}" class="destination-img" loading="lazy">
+          <div class="destination-badge">${dest.country}</div>
+          <button class="wishlist-btn" onclick="toggleWishlist(this, '${dest.id}', '${dest.name}')" title="Wishlist">
+            <i class="far fa-heart"></i>
+          </button>
+          <div class="destination-overlay">
+            <div class="d-flex gap-2">
+              <a href="/destinations/${dest.id}" class="btn btn-light btn-sm"><i class="fas fa-circle-info me-1"></i>Details</a>
+              <a href="/booking?destination=${encodeURIComponent(dest.name)}" class="btn btn-primary btn-sm">Book Now</a>
+            </div>
+          </div>
+        </div>
+        <div class="destination-info">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <h6 class="destination-name mb-0">
+              <a href="/destinations/${dest.id}" class="text-decoration-none text-dark card-title-link" style="transition: color 0.3s ease;">${dest.name}</a>
+            </h6>
+            <span class="price-badge">₹${dest.price.toLocaleString()}</span>
+          </div>
+          <div class="rating-row mb-2">
+            ${ratingStars}
+            <span class="rating-count">(${dest.reviews} reviews)</span>
+          </div>
+          <p class="destination-desc">${dest.description}</p>
+          <div class="d-flex gap-2 mt-3">
+            <a href="/destinations/${dest.id}" class="btn btn-outline-primary btn-sm flex-grow-1">
+              <i class="fas fa-circle-info me-1"></i>View Details
+            </a>
+            <a href="/booking?destination=${encodeURIComponent(dest.name)}" class="btn btn-primary btn-sm flex-grow-1">
+              <i class="fas fa-calendar-check me-1"></i>Book Now
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Render a single POI card in JavaScript
+function renderPoiCard(poi) {
+  const ratingStars = Array.from({length: 5}, (_, i) => 
+    `<i class="fas fa-star ${i < Math.round(parseFloat(poi.rating)) ? 'text-warning' : 'text-muted'}" style="font-size:10px"></i>`
+  ).join('');
+
+  return `
+    <div class="col-md-6">
+      <div class="poi-item-card">
+        <img src="${poi.image || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=300'}" class="poi-item-img" alt="${poi.name}">
+        <div class="poi-item-info">
+          <div>
+            <h6 class="poi-item-title" title="${poi.name}">${poi.name}</h6>
+            <div class="poi-item-meta">
+              <span class="poi-badge badge-${poi.category}">${poi.category}</span>
+              <span class="poi-dist-badge"><i class="fas fa-location-dot me-1"></i>${poi.distance ? poi.distance.toFixed(1) + ' km away' : ''}</span>
+            </div>
+            <div class="mb-1">${ratingStars}</div>
+            <p class="poi-item-desc">${poi.description}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Execute dynamic geocoded search against the backend
+async function performBackendSearch(query) {
+  if (searchTimeout) clearTimeout(searchTimeout);
+  const q = query.trim();
+  if (!q) return resetSearch();
+
+  const grid = document.getElementById('destinationsGrid');
+  const nearbyContainer = document.getElementById('nearbyContainer');
+  
+  // Show loading spinner
+  grid.innerHTML = `
+    <div class="col-12 text-center my-5">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+      <p class="mt-3 text-muted font-bold">Discovering "${q}" and nearby sights...</p>
+    </div>
+  `;
+  nearbyContainer.style.display = 'none';
+
+  try {
+    const res = await fetch(`/api/destinations/search?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+
+    if (data.destinations && data.destinations.length > 0) {
+      // Render matched destinations
+      grid.innerHTML = data.destinations.map(d => renderCard(d)).join('');
+      
+      // Render nearby destinations
+      const nearbyDestsGrid = document.getElementById('nearbyDestGrid');
+      if (data.nearbyDestinations && data.nearbyDestinations.length > 0) {
+        document.getElementById('nearbyDestinations').style.display = 'block';
+        nearbyDestsGrid.innerHTML = data.nearbyDestinations.map(d => renderCard(d)).join('');
+      } else {
+        document.getElementById('nearbyDestinations').style.display = 'none';
+      }
+
+      // Render nearby POIs (sights, temples, dining, lodging, falls)
+      const nearbyPois = data.nearbyPois || {};
+      const hasPois = Object.values(nearbyPois).some(arr => arr.length > 0);
+      
+      if (hasPois) {
+        document.getElementById('nearbySights').style.display = 'block';
+        
+        // Build tabs headers
+        const tabList = document.getElementById('poiSearchTabs');
+        const tabContent = document.getElementById('poiSearchContent');
+        
+        const categories = [
+          { key: 'tourist', icon: '🏰', label: 'Sights' },
+          { key: 'temple', icon: '🛕', label: 'Temples' },
+          { key: 'restaurant', icon: '🍔', label: 'Dining' },
+          { key: 'lodge', icon: '🏨', label: 'Lodging' },
+          { key: 'falls', icon: '🌊', label: 'Falls' }
+        ];
+
+        let activeSet = false;
+        tabList.innerHTML = categories.map(cat => {
+          const count = (nearbyPois[cat.key] || []).length;
+          if (count === 0) return '';
+          
+          const isActive = !activeSet;
+          activeSet = true;
+          
+          return `
+            <li class="nav-item" role="presentation">
+              <button class="nav-link ${isActive ? 'active' : ''}" id="search-${cat.key}-tab" data-bs-toggle="tab" data-bs-target="#search-${cat.key}-pane" type="button" role="tab" aria-selected="${isActive}">
+                ${cat.icon} ${cat.label} (${count})
+              </button>
+            </li>
+          `;
+        }).join('');
+
+        activeSet = false;
+        tabContent.innerHTML = categories.map(cat => {
+          const items = nearbyPois[cat.key] || [];
+          if (items.length === 0) return '';
+          
+          const isActive = !activeSet;
+          activeSet = true;
+
+          const cardsHtml = items.map(poi => renderPoiCard(poi)).join('');
+          
+          return `
+            <div class="tab-pane fade ${isActive ? 'show active' : ''}" id="search-${cat.key}-pane" role="tabpanel">
+              <div class="row g-3 mt-2">
+                ${cardsHtml}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        document.getElementById('nearbySights').style.display = 'none';
+      }
+
+      if (hasPois || (data.nearbyDestinations && data.nearbyDestinations.length > 0)) {
+        nearbyContainer.style.display = 'block';
+        // Scroll slightly to see nearby things
+        setTimeout(() => {
+          nearbyContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 300);
+      }
+
+      // Re-hook click trackers for recently viewed
+      hookCardClickListeners();
+
+    } else {
+      // 0 results fallback
+      grid.innerHTML = `
+        <div class="col-12 text-center my-5">
+          <i class="fas fa-magnifying-glass text-muted fs-1 mb-3"></i>
+          <h5>No destinations found for "${q}"</h5>
+          <p class="text-muted">Try searching for other famous places like Mysore, Bengaluru, Hampi, Shimla, or Agra.</p>
+          <button class="btn btn-outline-primary btn-sm mt-2" onclick="resetSearch()">View All Destinations</button>
+        </div>
+      `;
+    }
+  } catch (err) {
+    console.error('Search failed:', err);
+    grid.innerHTML = `
+      <div class="col-12 text-center my-5 text-danger">
+        <i class="fas fa-triangle-exclamation fs-1 mb-3"></i>
+        <h5>Search Service Error</h5>
+        <p class="text-muted">An error occurred while connecting to the geocoding service. Please try again.</p>
+        <button class="btn btn-outline-primary btn-sm mt-2" onclick="resetSearch()">Reset Search</button>
+      </div>
+    `;
+  }
+}
+
+// Track recently viewed destinations
+function hookCardClickListeners() {
+  document.querySelectorAll('.destination-card').forEach(card => {
+    card.addEventListener('click', function() {
+      const name = this.querySelector('.destination-name')?.textContent;
+      const img = this.querySelector('.destination-img')?.src;
+      const price = this.querySelector('.price-badge')?.textContent;
+      if (name) trackRecentlyViewed({ name, img, price });
+    });
+  });
+}
+hookCardClickListeners();
 
 function trackRecentlyViewed(dest) {
   let recent = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
@@ -192,4 +643,21 @@ function displayRecentlyViewed() {
   }
 }
 displayRecentlyViewed();
+
+// Setup Wishlist mock helper
+function toggleWishlist(btn, id, name) {
+  event.stopPropagation(); // Stop click bubble to card
+  const heart = btn.querySelector('i');
+  if (heart.classList.contains('far')) {
+    heart.classList.remove('far');
+    heart.classList.add('fas');
+    heart.style.color = '#e63946';
+    alert(`❤️ Added "${name}" to Wishlist!`);
+  } else {
+    heart.classList.remove('fas');
+    heart.classList.add('far');
+    heart.style.color = '';
+    alert(`💔 Removed "${name}" from Wishlist.`);
+  }
+}
 </script>

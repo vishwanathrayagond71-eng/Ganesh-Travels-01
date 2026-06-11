@@ -474,7 +474,7 @@
       document.getElementById('nearbyToggleWrapper').style.display = 'block';
 
       updateUserMarker(lat, lng, 'Interested Starting Point');
-      filterListAndMap();
+      fetchAndMergeNearbyPois(lat, lng);
     });
   });
 
@@ -645,9 +645,13 @@
       const matchCat = cat === 'all' || poi.category === cat;
       
       let matchDistance = true;
-      if (nearbyOnly && userCoords) {
+      if (userCoords) {
         const dist = calculateDistance(userCoords.lat, userCoords.lng, parseFloat(poi.lat), parseFloat(poi.lng));
-        matchDistance = dist <= 10; // Within 10 km
+        if (nearbyOnly) {
+          matchDistance = dist <= 10; // Within 10 km
+        } else {
+          matchDistance = dist <= 50; // Within 50 km (Locate Me Radius)
+        }
       }
 
       return matchSearch && matchCat && matchDistance;
@@ -746,8 +750,8 @@
         const group = userCircle ? new L.featureGroup([userMarker, userCircle]) : new L.featureGroup([userMarker]);
         map.fitBounds(group.getBounds().pad(0.1));
 
-        // Re-filter and re-calculate distances
-        filterListAndMap();
+        // Fetch and merge nearby POIs
+        fetchAndMergeNearbyPois(lat, lng);
       },
       (error) => {
         console.error('[GPS Error]', error);
@@ -771,6 +775,27 @@
         maximumAge: 0 // Force fresh coords without caching
       }
     );
+  }
+
+  // Helper to fetch dynamically generated POIs near coordinates and merge them
+  async function fetchAndMergeNearbyPois(lat, lng) {
+    try {
+      const res = await fetch(`/api/pois/nearby?lat=${lat}&lng=${lng}`);
+      const fetchedPois = await res.json();
+      if (Array.isArray(fetchedPois)) {
+        fetchedPois.forEach(poi => {
+          const exists = rawPois.some(p => p.id === poi.id || p.name.toLowerCase() === poi.name.toLowerCase());
+          if (!exists) {
+            rawPois.push(poi);
+          }
+        });
+        // Re-plot markers and refresh list
+        renderMapMarkers(rawPois);
+      }
+    } catch (fetchErr) {
+      console.error('[Locate Me POI Fetch Error]:', fetchErr.message);
+    }
+    filterListAndMap();
   }
 
   // Select Starting Point dropdown option
@@ -814,8 +839,8 @@
     updateUserMarker(lat, lng, 'Interested Location');
     map.setView([lat, lng], 14);
 
-    // Re-calculate distances and sort list
-    filterListAndMap();
+    // Fetch and merge nearby POIs
+    fetchAndMergeNearbyPois(lat, lng);
   }
 
   // Haversine formula calculation (spherical trigonometry for coordinates)

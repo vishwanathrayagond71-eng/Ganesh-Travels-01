@@ -8,6 +8,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const excel = require('../utils/excelService');
+const osm = require('../utils/osmService');
 const { requireUser, requireAdmin, redirectIfLoggedIn, redirectIfAdminLoggedIn } = require('../middleware/auth');
 const path = require('path');
 
@@ -35,7 +36,7 @@ const packages = [
   { id: 3, name: 'Ladakh Adventure Expedition', type: 'adventure', image: 'https://images.unsplash.com/photo-1536867114-e8b98cca2473?w=600', price: 44999, duration: '9 Days / 8 Nights', destinations: 'Leh - Nubra - Pangong', services: ['Camp Stay', 'Breakfast', 'Bike Rental', 'Adventure Guide', 'Permits'], rating: 4.9 },
   { id: 4, name: 'Goa Solo Beach Getaway', type: 'solo', image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600', price: 18999, duration: '4 Days / 3 Nights', destinations: 'North Goa - South Goa', services: ['Boutique Hotel', 'Breakfast', 'Scooter Rental', 'Beach Activities', 'City Tour'], rating: 4.6 },
   { id: 5, name: 'Rajasthan Group Heritage Tour', type: 'group', image: 'https://images.unsplash.com/photo-1477587458883-47145ed68d6a?w=600', price: 28999, duration: '8 Days / 7 Nights', destinations: 'Jaipur - Jodhpur - Udaipur', services: ['Heritage Hotel', 'Daily Breakfast', 'AC Bus', 'Camel Safari', 'Folk Show'], rating: 4.7 },
-  { id: 6, name: 'Bali International Package', type: 'international', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600', price: 69999, duration: '7 Days / 6 Nights', destinations: 'Kuta - Ubud - Nusa Dua', services: ['5★ Resort', 'All Meals', 'Flights', 'Spa & Wellness', 'Temple Tours'], rating: 4.8 }
+  { id: 6, name: 'Kashmir Paradise Group Tour', type: 'group', image: 'https://images.unsplash.com/photo-1566228015668-4c45dbc4e2f5?w=600', price: 39999, duration: '6 Days / 5 Nights', destinations: 'Srinagar - Gulmarg - Pahalgam', services: ['Luxury Hotel Stay', 'Daily Breakfast & Dinner', 'Houseboat Stay', 'Shikara Ride', 'Private AC Cab'], rating: 4.9 }
 ];
 
 // ============================================================
@@ -96,7 +97,7 @@ router.get('/destinations/:id', async (req, res) => {
     }
 
     // Load POIs from Excel / MongoDB
-    const pois = await excel.readData('pois');
+    let pois = await excel.readData('pois');
 
     // Distance calculation helper (Haversine formula)
     const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -111,6 +112,37 @@ router.get('/destinations/:id', async (req, res) => {
       return R * c;
     };
 
+    const destLat = parseFloat(destination.lat);
+    const destLng = parseFloat(destination.lng);
+
+    // Check if we need to fetch POIs from OSM (if < 5 POIs exist near the destination within 50km)
+    let localPoisNearDest = pois.filter(poi => {
+      const poiLat = parseFloat(poi.lat);
+      const poiLng = parseFloat(poi.lng);
+      if (isNaN(poiLat) || isNaN(poiLng)) return false;
+      return calculateDistance(destLat, destLng, poiLat, poiLng) <= 50;
+    });
+
+    if (localPoisNearDest.length < 5) {
+      console.log(`[Dynamic POI Seeding] Fetching POIs near ${destination.name} (${destLat}, ${destLng})...`);
+      const cityName = destination.name.split(',')[0];
+      try {
+        const newPois = await osm.getPoisForCity(cityName, destLat, destLng);
+        for (const poi of newPois) {
+          const exists = pois.some(p => p.name.toLowerCase() === poi.name.toLowerCase() || 
+            (Math.abs(parseFloat(p.lat) - parseFloat(poi.lat)) < 0.0001 && 
+             Math.abs(parseFloat(p.lng) - parseFloat(poi.lng)) < 0.0001)
+          );
+          if (!exists) {
+            await excel.addRow('pois', poi);
+            pois.push(poi); // Add to in-memory list
+          }
+        }
+      } catch (err) {
+        console.error('[Dynamic POI Seeding Error]:', err.message);
+      }
+    }
+
     // Calculate distance and categorize POIs within 100km
     const nearbyPois = {
       tourist: [],
@@ -119,9 +151,6 @@ router.get('/destinations/:id', async (req, res) => {
       lodge: [],
       falls: []
     };
-
-    const destLat = parseFloat(destination.lat);
-    const destLng = parseFloat(destination.lng);
 
     pois.forEach(poi => {
       const poiLat = parseFloat(poi.lat);
@@ -708,6 +737,279 @@ router.get('/admin/download/:sheet', requireAdmin, async (req, res) => {
     console.error(`[Excel Download Error] Failed to generate ${sheet}.xlsx:`, err);
     req.flash('error', 'Could not generate Excel file.');
     res.redirect('/admin/dashboard');
+  }
+});
+
+// Dynamic destinations search and geocoding API
+router.get('/api/destinations/search', async (req, res) => {
+  try {
+    const q = req.query.q ? req.query.q.trim() : '';
+    const dests = await excel.readData('destinations');
+    const formattedDests = formatDestinations(dests);
+
+    if (!q) {
+      return res.json({ destinations: formattedDests, nearbyDestinations: [], nearbyPois: { tourist: [], temple: [], restaurant: [], lodge: [], falls: [] } });
+    }
+
+    const queryLower = q.toLowerCase();
+    // 1. Search locally
+    let matches = formattedDests.filter(d => 
+      d.name.toLowerCase().includes(queryLower) || 
+      d.description.toLowerCase().includes(queryLower) ||
+      d.country.toLowerCase().includes(queryLower)
+    );
+
+    // 2. If 0 local matches, resolve using OpenStreetMap Nominatim
+    if (matches.length === 0) {
+      const resolved = await osm.geocodeAddress(q);
+      if (resolved) {
+        // Check if this city matches any local destination
+        const existing = formattedDests.find(d => 
+          (resolved.city && d.name.toLowerCase().includes(resolved.city.toLowerCase())) || 
+          resolved.name.toLowerCase().includes(d.name.split(',')[0].toLowerCase())
+        );
+
+        if (existing) {
+          matches = [existing];
+        } else {
+          // Determine category
+          let category = 'historical';
+          const nameLower = resolved.name.toLowerCase();
+          if (nameLower.includes('beach') || nameLower.includes('sea') || nameLower.includes('coast') || nameLower.includes('island')) {
+            category = 'beach';
+          } else if (nameLower.includes('hill') || nameLower.includes('mountain') || nameLower.includes('peak') || nameLower.includes('valley') || nameLower.includes('alps') || nameLower.includes('himachal') || nameLower.includes('kashmir')) {
+            category = 'hill';
+          } else if (nameLower.includes('temple') || nameLower.includes('church') || nameLower.includes('mosque') || nameLower.includes('spiritual') || nameLower.includes('sacred') || nameLower.includes('shrine')) {
+            category = 'spiritual';
+          } else if (nameLower.includes('park') || nameLower.includes('falls') || nameLower.includes('lake') || nameLower.includes('river') || nameLower.includes('nature') || nameLower.includes('forest') || nameLower.includes('wildlife')) {
+            category = 'nature';
+          }
+
+          // Create new destination ID (increment maximum)
+          let maxId = 0;
+          formattedDests.forEach(d => {
+            const parsedId = parseInt(d.id);
+            if (parsedId > maxId) maxId = parsedId;
+          });
+          const newId = String(maxId + 1);
+          
+          const cleanName = resolved.city ? `${resolved.city}, ${resolved.country}` : resolved.name.split(',').slice(0, 2).join(', ');
+          
+          const newDest = {
+            id: newId,
+            name: cleanName,
+            category,
+            country: resolved.country,
+            image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600', // Default beautiful travel photo
+            description: `A stunning and newly discovered destination in ${resolved.country}. Explore the beautiful scenery, rich cultural heritage, and local wonders of ${cleanName}.`,
+            price: String(5000 + Math.floor(Math.random() * 8000)),
+            rating: String((4.3 + Math.random() * 0.7).toFixed(1)),
+            reviews: String(10 + Math.floor(Math.random() * 150)),
+            lat: String(resolved.lat),
+            lng: String(resolved.lng),
+            guideName: 'Ganesh Travels Guide',
+            createdAt: new Date().toLocaleString()
+          };
+
+          await excel.addRow('destinations', newDest);
+          console.log(`✅ Dynamically added new destination from search: ${newDest.name}`);
+          
+          // Seed POIs for this new place in the background/synchronously
+          try {
+            const newPois = await osm.getPoisForCity(resolved.city || q, resolved.lat, resolved.lng);
+            const currentPoisList = await excel.readData('pois');
+            for (const poi of newPois) {
+              const exists = currentPoisList.some(p => p.name.toLowerCase() === poi.name.toLowerCase());
+              if (!exists) {
+                await excel.addRow('pois', poi);
+              }
+            }
+            console.log(`✅ Seeded ${newPois.length} POIs near ${newDest.name}`);
+          } catch (poiErr) {
+            console.error('[Dynamic POI Seeding from Search Error]:', poiErr.message);
+          }
+
+          const finalDest = {
+            ...newDest,
+            id: parseInt(newId),
+            price: parseFloat(newDest.price),
+            rating: parseFloat(newDest.rating),
+            reviews: parseInt(newDest.reviews),
+            lat: parseFloat(newDest.lat),
+            lng: parseFloat(newDest.lng)
+          };
+          matches = [finalDest];
+        }
+      }
+    }
+
+    // 3. If we have a matched destination, calculate nearby destinations & POIs
+    let nearbyDestinations = [];
+    let nearbyPois = { tourist: [], temple: [], restaurant: [], lodge: [], falls: [] };
+
+    // Distance calculation helper (Haversine formula)
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+      const R = 6371; // Earth radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    };
+
+    if (matches.length > 0) {
+      const target = matches[0];
+      
+      // Calculate nearby destinations (within 200km, excluding the target itself)
+      nearbyDestinations = formattedDests
+        .filter(d => d.id !== target.id)
+        .map(d => ({
+          ...d,
+          distance: calculateDistance(target.lat, target.lng, d.lat, d.lng)
+        }))
+        .filter(d => d.distance <= 200)
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 6);
+
+      // Fetch nearby POIs (within 100km)
+      const allPois = await excel.readData('pois');
+
+      // Check if we need to fetch POIs from OSM (if < 5 POIs exist near the destination within 50km)
+      let localPoisNearDest = allPois.filter(poi => {
+        const poiLat = parseFloat(poi.lat);
+        const poiLng = parseFloat(poi.lng);
+        if (isNaN(poiLat) || isNaN(poiLng)) return false;
+        return calculateDistance(target.lat, target.lng, poiLat, poiLng) <= 50;
+      });
+
+      if (localPoisNearDest.length < 5) {
+        console.log(`[Dynamic POI Seeding from Search] Fetching POIs near ${target.name} (${target.lat}, ${target.lng})...`);
+        const cityName = target.name.split(',')[0];
+        try {
+          const newPois = await osm.getPoisForCity(cityName, target.lat, target.lng);
+          for (const poi of newPois) {
+            const exists = allPois.some(p => p.name.toLowerCase() === poi.name.toLowerCase() || 
+              (Math.abs(parseFloat(p.lat) - parseFloat(poi.lat)) < 0.0001 && 
+               Math.abs(parseFloat(p.lng) - parseFloat(poi.lng)) < 0.0001)
+            );
+            if (!exists) {
+              await excel.addRow('pois', poi);
+              allPois.push(poi); // Add to local array so we can include it in response
+            }
+          }
+        } catch (err) {
+          console.error('[Dynamic POI Seeding from Search Error]:', err.message);
+        }
+      }
+
+      allPois.forEach(poi => {
+        const poiLat = parseFloat(poi.lat);
+        const poiLng = parseFloat(poi.lng);
+        if (isNaN(poiLat) || isNaN(poiLng)) return;
+
+        const dist = calculateDistance(target.lat, target.lng, poiLat, poiLng);
+        if (dist <= 100) {
+          const poiWithDistance = { ...poi, distance: dist };
+          let category = poi.category;
+          if (category === 'hotel') category = 'lodge';
+
+          if (nearbyPois[category]) {
+            nearbyPois[category].push(poiWithDistance);
+          } else {
+            nearbyPois.tourist.push(poiWithDistance);
+          }
+        }
+      });
+
+      // Sort nearby POIs by distance
+      for (const key in nearbyPois) {
+        nearbyPois[key].sort((a, b) => a.distance - b.distance);
+      }
+    }
+
+    res.json({
+      destinations: matches,
+      nearbyDestinations,
+      nearbyPois
+    });
+
+  } catch (err) {
+    console.error('[API Search Error]:', err);
+    res.status(500).json({ error: 'Failed to search destinations' });
+  }
+});
+
+// API to get nearby POIs (for Locate Me page)
+router.get('/api/pois/nearby', async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lng = parseFloat(req.query.lng);
+    if (isNaN(lat) || isNaN(lng)) {
+      return res.status(400).json({ error: 'Invalid latitude or longitude parameters' });
+    }
+
+    const pois = await excel.readData('pois');
+
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+      const R = 6371; // Earth radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    };
+
+    // Find POIs near user coordinates (within 50km)
+    let nearby = pois.filter(poi => {
+      const poiLat = parseFloat(poi.lat);
+      const poiLng = parseFloat(poi.lng);
+      if (isNaN(poiLat) || isNaN(poiLng)) return false;
+      return calculateDistance(lat, lng, poiLat, poiLng) <= 50;
+    });
+
+    // If we have fewer than 8 local POIs within 50km, fetch real ones from OSM
+    if (nearby.length < 8) {
+      console.log(`[OSM GPS Seeding] Fetching new POIs near GPS coordinates ${lat}, ${lng}...`);
+      try {
+        const geoInfo = await osm.reverseGeocode(lat, lng);
+        const searchCity = geoInfo ? geoInfo.city : `Location near ${lat.toFixed(2)},${lng.toFixed(2)}`;
+        
+        const newPois = await osm.getPoisForCity(searchCity, lat, lng);
+        
+        // Save new POIs to database if they don't already exist
+        for (const poi of newPois) {
+          const exists = pois.some(p => p.name.toLowerCase() === poi.name.toLowerCase() || 
+            (Math.abs(parseFloat(p.lat) - parseFloat(poi.lat)) < 0.0001 && 
+             Math.abs(parseFloat(p.lng) - parseFloat(poi.lng)) < 0.0001)
+          );
+          if (!exists) {
+            await excel.addRow('pois', poi);
+            pois.push(poi); // add to all list so we can include it in final output
+          }
+        }
+      } catch (osmErr) {
+        console.error('[OSM Locate Me Seeding Error]:', osmErr.message);
+      }
+
+      // Re-filter after adding the new ones, up to 50km radius so the map gets a good selection
+      nearby = pois.filter(poi => {
+        const poiLat = parseFloat(poi.lat);
+        const poiLng = parseFloat(poi.lng);
+        if (isNaN(poiLat) || isNaN(poiLng)) return false;
+        return calculateDistance(lat, lng, poiLat, poiLng) <= 50;
+      });
+    }
+
+    res.json(nearby);
+  } catch (err) {
+    console.error('[API Nearby POIs Error]:', err);
+    res.status(500).json({ error: 'Failed to fetch nearby POIs' });
   }
 });
 
