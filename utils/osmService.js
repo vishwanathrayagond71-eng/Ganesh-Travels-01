@@ -56,13 +56,9 @@ async function geocodeAddress(query) {
   try {
     let searchQuery = query.trim();
     
-    // Check if the query is already targeting a country
-    const hasCountry = /,\s*(india|france|indonesia|uae|italy|germany|spain|uk|usa|singapore|thailand|egypt|peru|maldives|japan|canada|australia)$/i.test(searchQuery);
-    
-    // If no country is specified, append ", India" to ensure we prioritize Indian districts/villages
-    if (!hasCountry) {
-      searchQuery = `${searchQuery}, India`;
-    }
+    // Remove any trailing country indicator (like , France or , USA) to prevent user from bypassing India restriction
+    searchQuery = searchQuery.replace(/,\s*[a-zA-Z\s]+$/, '');
+    searchQuery = `${searchQuery}, India`;
 
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&addressdetails=1&limit=1`;
     const results = await httpGet(url);
@@ -70,29 +66,16 @@ async function geocodeAddress(query) {
     if (results && results.length > 0) {
       const place = results[0];
       const address = place.address || {};
-      const name = place.display_name;
-      const lat = parseFloat(place.lat);
-      const lng = parseFloat(place.lon);
-      const city = extractCityName(address) || place.name || name.split(',')[0] || '';
-      const state = address.state || '';
-      const country = address.country || 'India';
-      return { name, lat, lng, city, state, country };
-    }
-    
-    // Fallback: If search query with ", India" failed (e.g. user searched for a foreign city like "Paris"), retry with original query
-    if (!hasCountry) {
-      const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=1`;
-      const fallbackResults = await httpGet(fallbackUrl);
-      if (fallbackResults && fallbackResults.length > 0) {
-        const place = fallbackResults[0];
-        const address = place.address || {};
+      const country = address.country || '';
+      
+      // Strict check: result must be in India
+      if (country.toLowerCase().includes('india') || (address.country_code && address.country_code.toLowerCase() === 'in')) {
         const name = place.display_name;
         const lat = parseFloat(place.lat);
         const lng = parseFloat(place.lon);
         const city = extractCityName(address) || place.name || name.split(',')[0] || '';
         const state = address.state || '';
-        const country = address.country || 'India';
-        return { name, lat, lng, city, state, country };
+        return { name, lat, lng, city, state, country: 'India' };
       }
     }
     
